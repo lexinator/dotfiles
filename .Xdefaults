@@ -1,23 +1,23 @@
-xterm*font:				9x15
-xterm*foreground:		white
-xterm*background:		black
-xterm*TermName:		xterms
-xterm*ReverseVideo: 	on
-xterm*SaveLines:		500
-xterm*ScrollBar:		on
+xterm*font:         9x15
+xterm*foreground:   white
+xterm*background:   black
+xterm*TermName:     xterms
+xterm*ReverseVideo: on
+xterm*SaveLines:    500
+xterm*ScrollBar:    on
 
-xterm*color0: Black
-xterm*color1: Red
-xterm*color2: Green
-xterm*color3: Yellow
-xterm*color4: Blue
-xterm*color5: Magenta
-xterm*color6: Cyan
-xterm*color7: White
+xterm*color0:       Black
+xterm*color1:       Red
+xterm*color2:       Green
+xterm*color3:       Yellow
+xterm*color4:       Blue
+xterm*color5:       Magenta
+xterm*color6:       Cyan
+xterm*color7:       White
 
-Rxvt*font:			9x15
-Rxvt*foreground:	white
-Rxvt*background:	black
-Rxvt*saveLines:	1500
+Rxvt*font:          9x15
+Rxvt*foreground:    white
+Rxvt*background:    black
+Rxvt*saveLines:     1500
 
-xmeter*shortName:		true
+xmeter*shortName:   true

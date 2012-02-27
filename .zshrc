@@ -180,11 +180,11 @@ case $USERNAME in
         #bindkey -M vicmd "ga" what-cursor-position
 
         fignore=(.o .c~ .old)
-        fpath=(~/zload $fpath)
         #check if zload exists
-        if [[ -d ${fpath[1]} ]]; then
-            autoload ${fpath[1]}/*(:t)
-        fi
+        #if [[ -d ~/zload ]] && [[ -n ~/zload/* ]]; then
+        #    fpath=(~/zload $fpath)
+        #    autoload ${fpath[1]}/*(:t)
+        #fi
 
         umask 022
         HISTFILE=~/.zsh_history
@@ -236,16 +236,16 @@ function cd () {
 
 # under screen label the screen window, under xterm label title bar
 function title {
-	if [[ $TERM == screen* ]] ||
-	   [[ $TERM == "vt100" ]] && [[ $HOST =~ scotch* ]]; then
-		# screen hard status
-		print -nR $'\033k'$USERNAME@$HOST[(ws:.:)1]+$1$'\033'\\
-		# xterm bar
-		print -nR $'\033]0;'$USERNAME@$HOST[(ws:.:)1]+$*$'\a'
-	elif [[ $TERM == ((rxvt|vt220|xterm*)) ]]; then
-		# Use this one instead for XTerms:
-		print -nR $'\033]0;'$USERNAME@$HOST[(ws:.:)1]+$*$'\a'
-	fi
+    if [[ $TERM == screen* ]] ||
+       [[ $TERM == "vt100" ]] && [[ $HOST =~ scotch* ]]; then
+        # screen hard status
+        print -nR $'\033k'$USERNAME@$HOST[(ws:.:)1]+$1$'\033'\\
+        # xterm bar
+        print -nR $'\033]0;'$USERNAME@$HOST[(ws:.:)1]+$*$'\a'
+    elif [[ $TERM == ((rxvt|vt220|xterm*)) ]]; then
+        # Use this one instead for XTerms:
+        print -nR $'\033]0;'$USERNAME@$HOST[(ws:.:)1]+$*$'\a'
+    fi
 }
 
 function precmd { title zsh "$PWD" }

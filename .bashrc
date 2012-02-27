@@ -27,39 +27,38 @@ alias e=edit
 
 #OS command specific
 case "`uname -s`" in
-	Linux)
-		alias su='su -m'
-		alias ls='ls --color=auto'
-		;;
+    Linux)
+        alias su='su -m'
+        alias ls='ls --color=auto'
+        ;;
 
-	SunOS)
-		alias ping='ping -s'
-		;;
+    SunOS)
+        alias ping='ping -s'
+        ;;
 esac
 
 function title {
-	if [ $TERM == "screen" ]; then
-		# Use these two for GNU Screen:
-		echo "\033]0;\u@\h:\w\a"
-#		echo -e '\033k'$USER@$HOSTNAME:r:r+$1$'\033'
-#		echo -e '\033]0;'$*$'\a'
-	elif [ $TERM == xterm ] || [ $TERM == rxvt ] ||
-	     [ $TERM == xterms ]; then
-		# Use this one instead for XTerms:
-		echo "\[\033]0;\u@\h:\w\007\]"
-#		echo -e '\033]0;'$USER@$HOSTNAME:r:r+$*$'\a'
-	fi
-	}
+    if [ $TERM == "screen" ]; then
+        # Use these two for GNU Screen:
+        echo "\033]0;\u@\h:\w\a"
+#        echo -e '\033k'$USER@$HOSTNAME:r:r+$1$'\033'
+#        echo -e '\033]0;'$*$'\a'
+    elif [ $TERM == xterm ] || [ $TERM == rxvt ] ||
+         [ $TERM == xterms ]; then
+        # Use this one instead for XTerms:
+        echo "\[\033]0;\u@\h:\w\007\]"
+#        echo -e '\033]0;'$USER@$HOSTNAME:r:r+$*$'\a'
+    fi
+    }
 
 case $TERM in
-	xterm|rxvt|xterms|screen)
-		#local TITLEBAR=`title $cmd[1]:t "$cmd[2,-1]"`
-		TITLEBAR='\[\033]0;\u@\h:\w\007\]'
+    xterm|rxvt|xterms|screen)
+        #local TITLEBAR=`title $cmd[1]:t "$cmd[2,-1]"`
+        TITLEBAR='\[\033]0;\u@\h:\w\007\]'
+        PS1="${TITLEBAR}\u@\h:\w%"
+        ;;
 
-		PS1="${TITLEBAR}\u@\h:\w%"
-		;;
-
-		*) PS1='\u@\h:\w\$'
-		;;
+        *) PS1='\u@\h:\w\$'
+        ;;
 esac
 

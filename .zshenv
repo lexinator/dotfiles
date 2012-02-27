@@ -20,43 +20,43 @@ fi
 }
 
 case $HOST in
-	*kuci*)
-		if [[ -f /pkg/modules/init/zsh ]] then
-			. /pkg/modules/init/zsh
-			module load vim irc mh
-		fi
-		;;
+    *kuci*)
+        if [[ -f /pkg/modules/init/zsh ]] then
+            . /pkg/modules/init/zsh
+            module load vim irc mh
+        fi
+        ;;
 
-	scotch*|bourbon*)
-		if [[ -f /pkg/modules/init/zsh ]] then
-			. /pkg/modules/init/zsh
-			module load default rsync nmh vim gsu screen rcs wget top \
-			            cvs gcc perl gtar combo/sysadmin subversion
-		else
-			echo "no modules on scotch, something fishy is going on"
-		fi
+    scotch*|bourbon*)
+        if [[ -f /pkg/modules/init/zsh ]] then
+            . /pkg/modules/init/zsh
+            module load default rsync nmh vim gsu screen rcs wget top \
+                        cvs gcc perl gtar combo/sysadmin subversion
+        else
+            echo "no modules on scotch, something fishy is going on"
+        fi
 
-		case "`uname -r`" in
-			5*) export PATH=$HOME/bin/sunos5/`uname -p`:$PATH ;;
-		esac
-		;;
+        case "`uname -r`" in
+            5*) export PATH=$HOME/bin/sunos5/`uname -p`:$PATH ;;
+        esac
+        ;;
 
-	#sun/linux/whatever path
-	*) PATH=/opt/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/sbin:$PATH
+    #sun/linux/whatever path
+    *) PATH=/opt/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/sbin:$PATH
        PATH=/usr/sfw/bin:$PATH
-		PATH=$PATH:/opt/sfw/gcc-3/bin:/pkg/bin:/sbin::/opt/sfw/bin
-		PATH=$PATH:/usr/X11R6/bin:/usr/local/bin 
-		MANPATH=/usr/man:/usr/share/man:/usr/sfw/man:/opt/sfw/man:/usr/dt/man
-		MANPATH=$MANPATH:/opt/sfw/mysql/man:/usr/local/man
-		MANPATH=$MANPATH:/opt/local/man
-		;;
+        PATH=$PATH:/opt/sfw/gcc-3/bin:/pkg/bin:/sbin::/opt/sfw/bin
+        PATH=$PATH:/usr/X11R6/bin:/usr/local/bin 
+        MANPATH=/usr/man:/usr/share/man:/usr/sfw/man:/opt/sfw/man:/usr/dt/man
+        MANPATH=$MANPATH:/opt/sfw/mysql/man:/usr/local/man
+        MANPATH=$MANPATH:/opt/local/man
+        ;;
 esac
 
 if [[ -d ~$USERNAME/bin ]]; then
-	export PATH=~$USERNAME/bin:$PATH
+    export PATH=~$USERNAME/bin:$PATH
 fi
 if [[ -d ~$USERNAME/public/man ]]; then
-	export MANPATH=~$USERNAME/public/man:$MANPATH
+    export MANPATH=~$USERNAME/public/man:$MANPATH
 fi
 
 # remove duplicate entries from path,manpath
