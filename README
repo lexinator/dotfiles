@@ -1,1 +1,6 @@
 My dotfiles without any site specific action
+
+mkdir -p ~/Dropbox
+cd ~/Dropbox
+git clone https://github.com/lexinator/dotfiles.git
+~/Dropbox/dotfiles/bin/prep-dotfiles.sh
