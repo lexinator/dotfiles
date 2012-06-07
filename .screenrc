@@ -1,6 +1,7 @@
 escape ^aA
 
 deflogin off
+term screen-256color
 
 #allow colors
 termcap  vt220|rxvt|xterm 'AF=\E[3%dm:AB=\E[4%dm'
@@ -10,13 +11,13 @@ terminfo vt220|rxvt|xterm 'AF=\E[3%p1%dm:AB=\E[4%p1%dm'
 #termcapinfo xterm|rxvt|vt220 'hs:ts=\E]2;:fs=\007:ds=\E]2;screen\007'
 
 #scrollbar will work under xterm
-termcapinfo xterm|rxvt ti@:te@
+termcapinfo xterm-256color|xterm-color|xterm|xterms|xs|rxvt ti@:te@
 
 #make sun termcap/info better
 #termcap  sun 'up=^K:AL=\E[%dL:DL=\E[%dM:UP=\E[%dA:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC:IC=\E[%d@:WS=1000\E[8;%d;%dt'
 #terminfo sun 'up=^K:AL=\E[%p1%dL:DL=\E[%p1%dM:UP=\E[%p1%dA:DO=\E[%p1%dB:LE=\E[%p1%dD:RI=\E[%p1%dC:IC=\E[%p1%d@:WS=\E[8;%p1%d;%p2%dt$<1000>'
 
-defscrollback 1000
+defscrollback 9000
 
 #hardstatus alwayslastline "%{=b}%{G} Screens: %{b}%w %=%{kG}%C%A  %D, %M/%d/%Y"
 #caption always "%{+b rk}%H%{gk} |%c %{yk}%d.%m.%Y | %{rw}%n%f %t %{bk} | %?%-Lw%?%{bw}%n*%f %t%?(%u)%?%{wk}%?%+Lw%? | %{rk} Load: %l %{wk}"
@@ -28,6 +29,7 @@ attrcolor b ".I"
 # tell screen how to set colors. AB = background, AF=foreground
 #termcapinfo xterm "Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm"
 #termcapinfo xterm-color "Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm"
+
 # erase background with current bg color
 defbce on
 

@@ -37,6 +37,7 @@ alias laxssh='ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oLo
 alias sudo='sudo -E'
 alias rm='rm -i'
 alias mv='mv -i'
+alias les='less'
 alias ttyset='set noglob; eval `tset -sQ -m :?vt100` ; unset noglob'
 alias rsync='rsync -av --progress --stats'
 alias aptinstall='apt-get update 1> /dev/null && apt-get install --force-yes'
@@ -46,7 +47,6 @@ alias pss='ps -e -o pid,user,rss,vsz,stime,time,args'
 if whence vim &> /dev/null; then
     alias vi=vim
 fi
-
 aws() { curl "http://169.254.169.254/latest/meta-data/$1" }
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
@@ -58,6 +58,8 @@ case $OS in
            alias su='su -m -s =zsh'
         fi
         alias ls='ls --color=auto -F'
+        export GREP_COLOR='1;32'
+        export GREP_OPTIONS='--color=auto'
         if [[ ! -f /etc/redhat-release ]]; then
             if [ -f =lessfile ]; then eval "$(lessfile)"; fi
         fi
@@ -82,9 +84,12 @@ case $OS in
         export COMMAND_MODE=unix2003
         #manpage for arrangement
         export LSCOLORS=ExGxDxdxCxegedabagacad
+        export GREP_COLOR='1;32'
+        export GREP_OPTIONS='--color=auto'
         alias ls='ls -G'
         alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-         ;; 
+        alias fab='fab-2.7'
+        ;; 
 esac
 
 psvar=$OS
@@ -98,14 +103,11 @@ if [[ -f /etc/redhat-release ]]; then
     psvar="${psvar}-$(awk '{print "rh-"$8}' /etc/redhat-release)"
 fi
 
-[[ -e $SSH_AUTH_SOCK ]] && psvar="*$psvar"
-psvar="$psvar "
-
 # zsh version specific commands
 case $ZSH_VERSION in
-    3.1*|4*)
-        setopt HIST_EXPIRE_DUPS_FIRST HIST_REDUCE_BLANKS
-        setopt SHARE_HISTORY HIST_SAVE_NO_DUPS INC_APPEND_HISTORY
+    3.1*|4*|5*)
+        setopt hist_expire_dups_first hist_reduce_blanks transient_rprompt
+        setopt share_history hist_save_no_dups inc_append_history
 
         setopt null_glob
         fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions ~/public/share/zsh/*/functions )
@@ -120,40 +122,120 @@ case $ZSH_VERSION in
         compinit -C -d ~/.zcompdump_$ZSH_VERSION
 
         function preexec {
-              emulate -L zsh
-              local -a cmd; cmd=(${(z)1})        # Re-parse the command line
-#              title $cmd[1]:t "$cmd[2,-1]"
+            emulate -L zsh
+            local -a cmd; cmd=(${(z)1})        # Re-parse the command line
+            #title $cmd[1]:t "$cmd[2,-1]"
 
-               # Construct a command that will output the desired job number.
-              case $cmd[1] in
-                  fg) if (( $#cmd == 1 )); then
-                            # No arguments, must find the current job
-                            cmd=(builtin jobs -l %+)
-                        else
-                            # Replace the command name, ignore extra args.
-                            cmd=(builtin jobs -l ${(Q)cmd[2]})
-                        fi;;
-                    # Same as "else" %above
-                    %*) cmd=(builtin jobs -l ${(Q)cmd[1]});;
+            # Construct a command that will output the desired job number.
+            case $cmd[1] in
+                fg) if (( $#cmd == 1 )); then
+                          # No arguments, must find the current job
+                          cmd=(builtin jobs -l %+)
+                      else
+                          # Replace the command name, ignore extra args.
+                          cmd=(builtin jobs -l ${(Q)cmd[2]})
+                      fi;;
+                  # Same as "else" %above
+                %*) cmd=(builtin jobs -l ${(Q)cmd[1]});;
 
-                    *) title $cmd[1]:t "$cmd[2,-1]"   # Not resuming a job,
-                        return;;                        # so we're all done
-                esac
+                *) title $cmd[1]:t "$cmd[2,-1]"   # Not resuming a job,
+                    return;;                      # so we're all done
+            esac
 
-              local -A jt; jt=(${(kv)jobtexts})     # Copy jobtexts for subshell
+            local -A jt; jt=(${(kv)jobtexts})     # Copy jobtexts for subshell
 
             # Run the command, read its output, and look up the jobtext.
             # Could parse $rest here, but $jobtexts (via $jt) is easier.
             $cmd >>(read num rest
-              cmd=(${(z)${(e):-\$jt$num}})
-              title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
-            }
-            ;;
+                    cmd=(${(z)${(e):-\$jt$num}})
+            title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
+        }
+        ;;
     *)  #ancient version of zsh
         echo "zstyle completion not available in zsh-$ZSH_VERSION"
         function zstyle { }
         ;;
 esac
+
+function setprompt {
+    setopt prompt_subst
+
+    # See if we can use extended characters to look nicer.
+    typeset -A altchar
+    set -A altchar ${(s..)terminfo[acsc]}
+    PR_SET_CHARSET="%{$terminfo[enacs]%}"
+    PR_SHIFT_IN="%{$terminfo[smacs]%}"
+    PR_SHIFT_OUT="%{$terminfo[rmacs]%}"
+    PR_HBAR=${altchar[q]:--}
+    PR_ULCORNER=${altchar[l]:--}
+    PR_LLCORNER=${altchar[m]:--}
+    PR_LRCORNER=${altchar[j]:--}
+    PR_URCORNER=${altchar[k]:--}
+
+    #TODO: figure out in utf
+    PR_RIGHTARROW="➤"
+    PR_RIGHTARROW=">"
+    PR_LEFTARROW=${altchar[<]:-<}
+
+    if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
+        PR_CYAN='%F{081}'
+        PR_WHITE='%F{255}'
+        PR_BLUE='%F{024}'
+        PR_DARKRED='%F{052}'
+        PR_RED='%F{009}'
+        PR_GREEN='%F{048}'
+        PR_YELLOW='%F{011}'
+    else
+        autoload -U colors
+        colors
+        PR_CYAN="$fg[cyan]"
+        PR_WHITE="$fg[white]"
+        PR_BLUE="$fg[blue]"
+        PR_DARKRED="$fg[red]"
+        PR_GREEN="$fg[green]"
+        PR_YELLOW="$fg[yellow]"
+    fi
+
+    TOPLINE_PROMPT='$PR_SET_CHARSET\
+${PR_GREEN}%(!.${PR_DARKRED}root%f.%n)$PR_BLUE@${PR_GREEN}%m\
+$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_HBAR${(e)PR_FILLBAR}$PR_HBAR$PR_SHIFT_OUT\
+$GITSTATUS\
+$PR_CYAN$PR_SHIFT_IN$PR_URCORNER$PR_SHIFT_OUT'
+    BOTTOMLINE_PROMPT='\
+$PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_HBAR$PR_SHIFT_OUT$PR_RIGHTARROW\
+%(!.$PR_DARKRED.$PR_WHITE)%#$PR_WHITE '
+
+#$(typeset -f git_prompt_info 1>/dev/null && git_prompt_info)\
+#$(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)\
+    PROMPT="$TOPLINE_PROMPT\
+
+$BOTTOMLINE_PROMPT"
+    RPROMPT='$PR_CYAN\
+%(?..$PR_RED%? )\
+$PR_YELLOW%T %v$PR_RIGHTARROW \
+$PR_WHITE%$PR_PWDLEN<...<%~%<<\
+$PR_CYAN $PR_SHIFT_IN$PR_HBAR$PR_LRCORNER$PR_SHIFT_OUT\
+$PR_WHITE'
+
+    PS2='$PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_SHIFT_OUT\
+$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
+$PR_GREEN%_>\
+$PR_WHITE'
+
+    ZSH_THEME_GIT_PROMPT_PREFIX="${PR_RIGHTARROW}${PR_WHITE}["
+    ZSH_THEME_GIT_PROMPT_SUFFIX="${PR_WHITE}]${PR_LEFTARROW}"
+
+    ZSH_THEME_GIT_PROMPT_DIRTY="${PR_DARKRED}⚡dirty"
+    ZSH_THEME_GIT_PROMPT_AHEAD="${PR_YELLOW}!ahead"
+    ZSH_THEME_GIT_PROMPT_CLEAN="${PR_GREEN}✓"
+
+    ZSH_THEME_GIT_PROMPT_ADDED="$PR_GREEN✚ add "
+    ZSH_THEME_GIT_PROMPT_MODIFIED="$PR_BLUE✹ mod "
+    ZSH_THEME_GIT_PROMPT_DELETED="$PR_RED✖ del "
+    ZSH_THEME_GIT_PROMPT_RENAMED="%{$fg[magenta]%}➜ rename "
+    ZSH_THEME_GIT_PROMPT_UNMERGED="$PR_YELLOW═ unmerged "
+    ZSH_THEME_GIT_PROMPT_UNTRACKED="$PR_CYAN✭ untracked "
+}
 
 #user specific stuff
 case $USERNAME in
@@ -180,12 +262,16 @@ case $USERNAME in
         #bindkey -M vicmd "u" undo
         #bindkey -M vicmd "ga" what-cursor-position
 
-        fignore=(.o .c~ .old)
+        setopt nullglob
         #check if zload exists
-        #if [[ -d ~/zload ]] && [[ -n ~/zload/* ]]; then
-        #    fpath=(~/zload $fpath)
-        #    autoload ${fpath[1]}/*(:t)
-        #fi
+        if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
+            fpath=(~/zload $fpath)
+            autoload ${fpath[1]}/*(:t)
+            for config_file (~/zload/*.zsh) source $config_file
+        fi
+        setopt no_nullglob
+
+        FIGNORE='.pyc:.o'
 
         umask 022
         HISTFILE=~/.zsh_history
@@ -215,11 +301,12 @@ case $USERNAME in
         SAVEHIST=0
     ;;
 esac
+setprompt
 
 # cd to a file (cd path/path/file)
 # go to the directory containing the file, no questions asked 
 #added support for cd foo bar to change from /foo/subdir to /bar/subdir 
-function cd () {
+function cd {
     if [[ -z $2 ]]; then
         if [[ -f $1 ]]; then
             builtin cd $1:h
@@ -249,7 +336,32 @@ function title {
     fi
 }
 
-function precmd { title zsh "$PWD" }
+function precmd {
+    title zsh "$PWD"
+    GITSTATUS="$(typeset -f git_prompt_info 1>/dev/null && git_prompt_info)\
+$(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
+
+    local TERMWIDTH
+    (( TERMWIDTH = ${COLUMNS} - 1 ))
+    PR_FILLBAR=""
+    PR_PWDLEN=""
+
+    local removeColors='%([BSUbfksu]|([FB]|){*})|$GITSTATUS|$PR_SET_CHARSET|$PR_SHIFT_IN|$PR_SHIFT_OUT|${(PR_RED|PR_GREEN|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN)}|$(PR_GREEN|PR_RED|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN)|${\(e\)PR_FILLBAR}|%$PR_PWDLEN<...<%~%<<'
+    local promptsize=${#${(S%%)TOPLINE_PROMPT//$~removeColors/}}
+    local gitstatussize=${#${(S%%)GITSTATUS//$~removeColors/}}
+    promptsize=$(($promptsize + $gitstatussize))
+
+    local pwdsize=${#${(%):-%~}}
+    local pwdsize=0
+
+    #calculate terminal width
+    if [[ "$promptsize + $pwdsize" -gt $TERMWIDTH ]]; then
+        ((PR_PWDLEN=$TERMWIDTH - $promptsize))
+    else
+        PR_FILLBAR="\${(l.(($TERMWIDTH -($promptsize+$pwdsize)))..${PR_HBAR}.)}"
+    fi
+}
+
 
 function console {
     ipmitool -I lanplus -H ${1}-ipmi -U root sol activate
@@ -260,6 +372,9 @@ zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _matc
 
 ## allow one error for every three characters typed in approximate completer
 zstyle -e ':completion:*:approximate:*' max-errors 'reply=( $(( ($#PREFIX+$#SUFFIX)/3 )) numeric )'
+
+# when cycling through items, highlight item
+zstyle ':completion:*:*:*:*:*' menu select
 
 ## formatting and messages
 zstyle ':completion:*' verbose yes
