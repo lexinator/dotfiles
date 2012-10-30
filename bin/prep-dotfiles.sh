@@ -48,7 +48,20 @@ if [[ -f $HOME/.ssh/config ]] && [[ ! -L $HOME/.ssh/config ]]; then
     echo "mv $HOME/.ssh/config $HOME/.ssh/config.stock"
     mv $HOME/.ssh/config $HOME/.ssh/config.stock
 fi
+
+if [[ ! -d $BASE/local ]]; then
+    mkdir -p $BASE/local/{.ssh,bin,zload}
+fi
+
+if [[ ! -d $HOME/.ssh ]]; then
+    mkdir -p $HOME/.ssh
+    chmod 700 $HOME/.ssh
+fi
+
 if [[ ! -L $HOME/.ssh/config ]]; then
+    if  [[ ! -f $BASE/local/.ssh/config ]]; then
+        touch $BASE/local/.ssh/config
+    fi
     echo "ln -s $BASE/local/.ssh/config $HOME/.ssh/config"
     ln -s $BASE/local/.ssh/config $HOME/.ssh/config
 fi
