@@ -52,6 +52,7 @@ aws() { curl "http://169.254.169.254/latest/meta-data/$1" }
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
 #OS command specific
+psvar=$OS
 case $OS in
     Linux)
         if [[ $EUID -ne 0 ]]; then
@@ -60,7 +61,17 @@ case $OS in
         alias ls='ls --color=auto -F'
         export GREP_COLOR='1;32'
         export GREP_OPTIONS='--color=auto'
-        if [[ ! -f /etc/redhat-release ]]; then
+
+        #debian/ubuntu
+        if [[ -f /etc/lsb-release ]]; then
+            psvar="${psvar}-$(grep CODENAME /etc/lsb-release | \
+                              awk -F= '{print $2}')"
+        fi
+        #redhat
+        if [[ -f /etc/redhat-release ]]; then
+            export SYSSCREENRC=/dev/null
+            psvar="${psvar}-$(awk '{print "rh-"$7$8}' /etc/redhat-release)"
+        else
             if [ -f =lessfile ]; then eval "$(lessfile)"; fi
         fi
         ;;
@@ -92,16 +103,6 @@ case $OS in
         ;; 
 esac
 
-psvar=$OS
-#debian/ubuntu
-if [[ -f /etc/lsb-release ]]; then
-    psvar="${psvar}-$(grep CODENAME /etc/lsb-release | awk -F= '{print $2}')"
-fi
-#redhat
-if [[ -f /etc/redhat-release ]]; then
-    export SYSSCREENRC=/dev/null
-    psvar="${psvar}-$(awk '{print "rh-"$8}' /etc/redhat-release)"
-fi
 
 # zsh version specific commands
 case $ZSH_VERSION in
@@ -188,12 +189,22 @@ function setprompt {
     else
         autoload -U colors
         colors
-        PR_CYAN="$fg[cyan]"
-        PR_WHITE="$fg[white]"
-        PR_BLUE="$fg[blue]"
-        PR_DARKRED="$fg[red]"
-        PR_GREEN="$fg[green]"
-        PR_YELLOW="$fg[yellow]"
+
+        if [[ -n $fg ]]; then
+            PR_CYAN="$fg[cyan]"
+            PR_WHITE="$fg[white]"
+            PR_BLUE="$fg[blue]"
+            PR_DARKRED="$fg[red]"
+            PR_GREEN="$fg[green]"
+            PR_YELLOW="$fg[yellow]"
+        else
+            PR_CYAN=""
+            PR_WHITE=""
+            PR_BLUE=""
+            PR_DARKRED=""
+            PR_GREEN=""
+            PR_YELLOW=""
+        fi
     fi
 
     TOPLINE_PROMPT='$PR_SET_CHARSET\
