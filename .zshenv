@@ -4,19 +4,19 @@
 umask 022
 
 authssh() {
-#grab ssh agent session if available
-if [[ -n $HOME ]] && [[ -n $HOST ]]; then
-    if [[ -e $HOME/tmp/$HOST-ssh-agent-s ]]; then
-        export SSH_AUTH_SOCK=$HOME/tmp/$HOST-ssh-agent-s
-    else
-        if [[ -n $SSH_AUTH_SOCK ]] &&
-                    [[ $SSH_AUTH_SOCK != $HOME/tmp/$HOST-ssh-agent-s ]]; then
-            mkdir -p $HOME/tmp
-            ln -sf $SSH_AUTH_SOCK $HOME/tmp/$HOST-ssh-agent-s
+    #grab ssh agent session if available
+    if [[ -n $HOME ]] && [[ -n $HOST ]]; then
+        if [[ -e $HOME/tmp/$HOST-ssh-agent-s ]]; then
             export SSH_AUTH_SOCK=$HOME/tmp/$HOST-ssh-agent-s
+        else
+            if [[ -n $SSH_AUTH_SOCK ]] &&
+                    [[ $SSH_AUTH_SOCK != $HOME/tmp/$HOST-ssh-agent-s ]]; then
+                mkdir -p $HOME/tmp
+                ln -sf $SSH_AUTH_SOCK $HOME/tmp/$HOST-ssh-agent-s
+                export SSH_AUTH_SOCK=$HOME/tmp/$HOST-ssh-agent-s
+            fi
         fi
     fi
-fi
 }
 
 case $HOST in
@@ -36,8 +36,8 @@ case $HOST in
             echo "no modules on scotch, something fishy is going on"
         fi
 
-        case "`uname -r`" in
-            5*) export PATH=$HOME/bin/sunos5/`uname -p`:$PATH ;;
+        case $(uname -r) in
+            5*) export PATH=$HOME/bin/sunos5/$(uname -p):$PATH ;;
         esac
         ;;
 

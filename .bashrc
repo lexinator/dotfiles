@@ -26,7 +26,7 @@ alias j=jobs
 alias e=edit
 
 #OS command specific
-case "`uname -s`" in
+case "$(uname -s)" in
     Linux)
         alias su='su -m'
         alias ls='ls --color=auto'

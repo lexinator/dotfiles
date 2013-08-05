@@ -21,10 +21,11 @@ fi
 #prompts
 PROMPT='%n@%m%#' ; RPROMPT='%(?..[%?])%T %v%~'
 OS=$(uname -s)
+REPORTTIME=7
 
 # my general preferences
 setopt autolist auto_menu nohup list_types always_last_prompt auto_cd correct
-setopt append_history all_export hist_ignore_dups hist_ignore_space
+setopt append_history hist_ignore_dups hist_ignore_space
 setopt hist_no_store extended_history
 unsetopt list_beep menu_complete
 
@@ -47,7 +48,6 @@ alias pss='ps -e -o pid,user,rss,vsz,stime,time,args'
 if whence vim &> /dev/null; then
     alias vi=vim
 fi
-aws() { curl "http://169.254.169.254/latest/meta-data/$1" }
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
@@ -82,16 +82,10 @@ case $OS in
         fi
         alias ping='ping -s'
         alias truss_off 'truss -w2 -t \\!setcontext,\\!brk,\\!ioctl,\\!poll,\\!sigprocmask'
-        function su() {
-            if [[ $#argv == 0 ]]; then
-                =su root -c =zsh
-            else
-                =su $argv[1] -c =zsh
-            fi    
-        }
         ;;
 
     Darwin)
+        psvar="${psvar}-$(sw_vers -productVersion)"
         export COMMAND_MODE=unix2003
         #manpage for arrangement
         export LSCOLORS=ExGxDxdxCxegedabagacad
@@ -99,67 +93,12 @@ case $OS in
         export GREP_OPTIONS='--color=auto'
         alias ls='ls -G'
         alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-        alias fab='fab-2.7'
         ;; 
-esac
-
-
-# zsh version specific commands
-case $ZSH_VERSION in
-    3.1*|4*|5*)
-        setopt hist_expire_dups_first hist_reduce_blanks transient_rprompt
-        setopt share_history hist_save_no_dups inc_append_history
-
-        setopt null_glob
-        fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions ~/public/share/zsh/*/functions )
-        unsetopt null_glob
-
-        #remove any duplicates
-        typeset -U fpath
-
-        autoload -U compinit
-
-        # don't perform security check
-        compinit -C -d ~/.zcompdump_$ZSH_VERSION
-
-        function preexec {
-            emulate -L zsh
-            local -a cmd; cmd=(${(z)1})        # Re-parse the command line
-            #title $cmd[1]:t "$cmd[2,-1]"
-
-            # Construct a command that will output the desired job number.
-            case $cmd[1] in
-                fg) if (( $#cmd == 1 )); then
-                          # No arguments, must find the current job
-                          cmd=(builtin jobs -l %+)
-                      else
-                          # Replace the command name, ignore extra args.
-                          cmd=(builtin jobs -l ${(Q)cmd[2]})
-                      fi;;
-                  # Same as "else" %above
-                %*) cmd=(builtin jobs -l ${(Q)cmd[1]});;
-
-                *) title $cmd[1]:t "$cmd[2,-1]"   # Not resuming a job,
-                    return;;                      # so we're all done
-            esac
-
-            local -A jt; jt=(${(kv)jobtexts})     # Copy jobtexts for subshell
-
-            # Run the command, read its output, and look up the jobtext.
-            # Could parse $rest here, but $jobtexts (via $jt) is easier.
-            $cmd >>(read num rest
-                    cmd=(${(z)${(e):-\$jt$num}})
-            title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
-        }
-        ;;
-    *)  #ancient version of zsh
-        echo "zstyle completion not available in zsh-$ZSH_VERSION"
-        function zstyle { }
-        ;;
 esac
 
 function setprompt {
     setopt prompt_subst
+    autoload -U is-at-least
 
     # See if we can use extended characters to look nicer.
     typeset -A altchar
@@ -174,25 +113,53 @@ function setprompt {
     PR_URCORNER=${altchar[k]:--}
 
     #TODO: figure out in utf
-    PR_RIGHTARROW="➤"
+    #PR_RIGHTARROW="➤"
     PR_RIGHTARROW=">"
     PR_LEFTARROW=${altchar[<]:-<}
 
-    if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
-        PR_CYAN='%F{081}'
-        PR_WHITE='%F{255}'
-        PR_BLUE='%F{024}'
-        PR_DARKRED='%F{052}'
-        PR_RED='%F{009}'
-        PR_GREEN='%F{048}'
-        PR_YELLOW='%F{011}'
-    else
+    if [[ $TERM == *256color* || $TERM == *rxvt* ]]; then
+        if is-at-least 4.3; then
+            # use 256 colors
+            PR_CYAN='%F{081}'
+            PR_WHITE='%F{255}'
+            PR_DEFAULT='%f'
+            PR_BLUE='%F{024}'
+            PR_DARKRED='%F{052}'
+            PR_RED='%F{009}'
+            PR_GREEN='%F{048}'
+            PR_YELLOW='%F{011}'
+        else
+            # use 16 colors
+            autoload -U colors
+            colors
+
+            if [[ -n $fg ]]; then
+                PR_CYAN="$fg[cyan]"
+                PR_WHITE="$fg[white]"
+                PR_DEFAULT="$fg[default]"
+                PR_BLUE="$fg[blue]"
+                PR_DARKRED="$fg[red]"
+                PR_GREEN="$fg[green]"
+                PR_YELLOW="$fg[yellow]"
+            else
+                PR_CYAN=""
+                PR_WHITE=""
+                PR_DEFAULT=""
+                PR_BLUE=""
+                PR_DARKRED=""
+                PR_GREEN=""
+                PR_YELLOW=""
+            fi
+        fi
+    elif [[ $TERM == *color* ]]; then
+        # use 16 colors
         autoload -U colors
         colors
 
         if [[ -n $fg ]]; then
             PR_CYAN="$fg[cyan]"
             PR_WHITE="$fg[white]"
+            PR_DEFAULT="$fg[default]"
             PR_BLUE="$fg[blue]"
             PR_DARKRED="$fg[red]"
             PR_GREEN="$fg[green]"
@@ -200,21 +167,31 @@ function setprompt {
         else
             PR_CYAN=""
             PR_WHITE=""
+            PR_DEFAULT=""
             PR_BLUE=""
             PR_DARKRED=""
             PR_GREEN=""
             PR_YELLOW=""
         fi
+    else
+        PR_CYAN=""
+        PR_WHITE=""
+        PR_DEFAULT=""
+        PR_BLUE=""
+        PR_DARKRED=""
+        PR_GREEN=""
+        PR_YELLOW=""
     fi
 
     TOPLINE_PROMPT='$PR_SET_CHARSET\
 ${PR_GREEN}%(!.${PR_DARKRED}root%f.%n)$PR_BLUE@${PR_GREEN}%m\
-$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_HBAR${(e)PR_FILLBAR}$PR_HBAR$PR_SHIFT_OUT\
+$PR_YELLOW %T$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_HBAR\
+${(e)PR_FILLBAR}$PR_HBAR$PR_SHIFT_OUT\
 $GITSTATUS\
 $PR_CYAN$PR_SHIFT_IN$PR_URCORNER$PR_SHIFT_OUT'
     BOTTOMLINE_PROMPT='\
 $PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_HBAR$PR_SHIFT_OUT$PR_RIGHTARROW\
-%(!.$PR_DARKRED.$PR_WHITE)%#$PR_WHITE '
+%(!.$PR_DARKRED.$PR_WHITE)%#$PR_DEFAULT '
 
 #$(typeset -f git_prompt_info 1>/dev/null && git_prompt_info)\
 #$(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)\
@@ -223,15 +200,15 @@ $PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_HBAR$PR_SHIFT_OUT$PR_RIGHTARROW\
 $BOTTOMLINE_PROMPT"
     RPROMPT='$PR_CYAN\
 %(?..$PR_RED%? )\
-$PR_YELLOW%T %v$PR_RIGHTARROW \
+$PR_YELLOW%v$PR_RIGHTARROW \
 $PR_WHITE%$PR_PWDLEN<...<%~%<<\
 $PR_CYAN $PR_SHIFT_IN$PR_HBAR$PR_LRCORNER$PR_SHIFT_OUT\
-$PR_WHITE'
+$PR_DEFAULT'
 
     PS2='$PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_SHIFT_OUT\
 $PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
 $PR_GREEN%_>\
-$PR_WHITE'
+$PR_DEFAULT'
 
     ZSH_THEME_GIT_PROMPT_PREFIX="${PR_RIGHTARROW}${PR_WHITE}["
     ZSH_THEME_GIT_PROMPT_SUFFIX="${PR_WHITE}]${PR_LEFTARROW}"
@@ -277,7 +254,6 @@ case $USERNAME in
         #check if zload exists
         if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
             fpath=(~/zload $fpath)
-            autoload ${fpath[1]}/*(:t)
             for config_file (~/zload/*.zsh) source $config_file
         fi
         setopt no_nullglob
@@ -314,24 +290,58 @@ case $USERNAME in
 esac
 setprompt
 
-# cd to a file (cd path/path/file)
-# go to the directory containing the file, no questions asked 
-#added support for cd foo bar to change from /foo/subdir to /bar/subdir 
-function cd {
-    if [[ -z $2 ]]; then
-        if [[ -f $1 ]]; then
-            builtin cd $1:h
-        else
-            builtin cd $1
-        fi
-    else
-        if [[ -z $3 ]]; then
-            builtin cd $1 $2
-        else
-            echo cd: too many arguments
-        fi
-    fi
-}
+# zsh version specific commands
+case $ZSH_VERSION in
+    3.1*|4*|5*)
+        setopt hist_expire_dups_first hist_reduce_blanks transient_rprompt
+        setopt share_history hist_save_no_dups inc_append_history
+
+        setopt null_glob
+        fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions ~/public/share/zsh/*/functions )
+        unsetopt null_glob
+
+        #remove any duplicates
+        typeset -U fpath
+
+        autoload -U compinit
+
+        # don't perform security check
+        compinit -C -d ~/.zcompdump_$ZSH_VERSION
+
+        function preexec {
+            emulate -L zsh
+            local -a cmd; cmd=(${(z)1})        # Re-parse the command line
+
+            # Construct a command that will output the desired job number.
+            case $cmd[1] in
+                fg) if (( $#cmd == 1 )); then
+                          # No arguments, must find the current job
+                          cmd=(builtin jobs -l %+)
+                      else
+                          # Replace the command name, ignore extra args.
+                          cmd=(builtin jobs -l ${(Q)cmd[2]})
+                      fi;;
+                  # Same as "else" %above
+                %*) cmd=(builtin jobs -l ${(Q)cmd[1]});;
+
+                *) title $cmd[1]:t "$cmd[2,-1]"   # Not resuming a job,
+                    return;;                      # so we're all done
+            esac
+
+            local -A jt; jt=(${(kv)jobtexts})     # Copy jobtexts for subshell
+
+            # Run the command, read its output, and look up the jobtext.
+            # Could parse $rest here, but $jobtexts (via $jt) is easier.
+            $cmd >>(read num rest
+                    cmd=(${(z)${(e):-\$jt$num}})
+            title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
+        }
+        ;;
+    *)  #ancient version of zsh
+        echo "zstyle completion not available in zsh-$ZSH_VERSION"
+        function zstyle { }
+        ;;
+esac
 
 # under screen label the screen window, under xterm label title bar
 function title {
@@ -357,12 +367,12 @@ $(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
     PR_FILLBAR=""
     PR_PWDLEN=""
 
-    local removeColors='%([BSUbfksu]|([FB]|){*})|$GITSTATUS|$PR_SET_CHARSET|$PR_SHIFT_IN|$PR_SHIFT_OUT|${(PR_RED|PR_GREEN|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN)}|$(PR_GREEN|PR_RED|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN)|${\(e\)PR_FILLBAR}|%$PR_PWDLEN<...<%~%<<'
+    local removeColors='%([BSUbfksu]|([FB]|){*})|$GITSTATUS|$PR_SET_CHARSET|$PR_SHIFT_IN|$PR_SHIFT_OUT|${(PR_RED|PR_GREEN|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN)}|$(PR_GREEN|PR_RED|PR_DARKRED|PR_BLUE|PR_WHITE|PR_CYAN|PR_YELLOW)|${\(e\)PR_FILLBAR}|%$PR_PWDLEN<...<%~%<<'
     local promptsize=${#${(S%%)TOPLINE_PROMPT//$~removeColors/}}
     local gitstatussize=${#${(S%%)GITSTATUS//$~removeColors/}}
     promptsize=$(($promptsize + $gitstatussize))
 
-    local pwdsize=${#${(%):-%~}}
+    #local pwdsize=${#${(%):-%~}}
     local pwdsize=0
 
     #calculate terminal width
@@ -373,9 +383,23 @@ $(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
     fi
 }
 
-
-function console {
-    ipmitool -I lanplus -H ${1}-ipmi -U root sol activate
+# cd to a file (cd path/path/file)
+# go to the directory containing the file, no questions asked 
+#added support for cd foo bar to change from /foo/subdir to /bar/subdir 
+function cd {
+    if [[ -z $2 ]]; then
+        if [[ -f $1 ]]; then
+            builtin cd $1:h
+        else
+            builtin cd $1
+        fi
+    else
+        if [[ -z $3 ]]; then
+            builtin cd $1 $2
+        else
+            echo cd: too many arguments
+        fi
+    fi
 }
 
 ## General completion technique - complete as much u can ..
