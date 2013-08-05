@@ -49,6 +49,8 @@ case $HOST in
         MANPATH=/usr/man:/usr/share/man:/usr/sfw/man:/opt/sfw/man:/usr/dt/man
         MANPATH=$MANPATH:/opt/sfw/mysql/man:/usr/local/man
         MANPATH=$MANPATH:/opt/local/man
+        export PATH
+        export MANPATH
         ;;
 esac
 
