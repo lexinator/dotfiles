@@ -69,6 +69,8 @@ export LESS="-x3iX"
 export PAGER=less
 #
 export RSYNC_RSH=ssh
+export VAGRANT_CWD=~/Documents/stackinthebox
+export VAGRANT_DEFAULT_PROVIDER='vmware_fusion'
 
 #get ssh agent
 authssh
