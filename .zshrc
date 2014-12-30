@@ -9,32 +9,16 @@ fi
 # all the stuff below is for interactive sessions
 uptime
 
-#stupid machines without screen termcap
-if [[ $TERM == "screen" ]] && 
-    [[ ! -f /etc/terminfo/s/screen ]] && 
-    [[ ! -f /usr/share/lib/terminfo/s/screen ]] &&
-    [[ ! -f /usr/share/terminfo/s/screen ]] &&
-    [[ ! -L /usr/share/terminfo/s/screen ]]; then
-    echo "System does not appear to have screen termcap assuming vt100..."
-    TERM=vt100 ; export TERM
-fi
-
-if [[ $TERM == "rxvt" ]] && 
-    [[ ! -f /etc/terminfo/r/rxvt ]] &&
-    [[ ! -f /usr/share/terminfo/r/rxvt ]]; then
-    echo "System does not appear to have rxvt termcap assuming vt220..."
-    TERM=vt220 ; export TERM
-fi
+OS=$(uname -s)
 
 #prompts
 PROMPT='%n@%m%#' ; RPROMPT='%(?..[%?])%T %v%~'
-OS=$(uname -s)
 REPORTTIME=7
 
 # my general preferences
 setopt autolist auto_menu nohup list_types always_last_prompt auto_cd correct
-setopt append_history hist_ignore_dups hist_ignore_space
-setopt hist_no_store extended_history
+setopt append_history hist_ignore_dups hist_ignore_space auto_resume
+setopt hist_no_store extended_history complete_in_word ALWAYS_TO_END
 unsetopt list_beep menu_complete
 
 #aliases
@@ -66,7 +50,9 @@ case $OS in
         if [[ $EUID -ne 0 ]]; then
            alias su='su -m -s =zsh'
         fi
-        alias ls='ls --color=auto -F'
+        if ls -d --color=auto / &> /dev/null; then
+            alias ls='ls -F --color=auto'
+        fi
         export GREP_COLOR='1;32'
         export GREP_OPTIONS='--color=auto'
 
@@ -80,7 +66,9 @@ case $OS in
             export SYSSCREENRC=/dev/null
             psvar="${psvar}-$(awk '{print "rh-"$7$8}' /etc/redhat-release)"
         else
-            if [ -f =lessfile ]; then eval "$(lessfile)"; fi
+            if whence lessfile &> /dev/null; then
+                eval "$(lessfile)"
+            fi
         fi
         ;;
 
@@ -101,6 +89,14 @@ case $OS in
         export GREP_OPTIONS='--color=auto'
         alias ls='ls -G'
         alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+        # use gui vim (in practice the focus is not returned after exiting...)
+        #if [[ -d /Applications/MacVim.app ]] && \
+        #        [[ -n $SECURITYSESSIONID || -n $TERM_SESSION_ID ]]; then
+        #    alias vi='mvim'
+        #fi
+        export BROWSER='open'
+        #wtf, darwin defaults to sorted by PID
+        alias top='top -ocpu'
         ;; 
 esac
 
@@ -258,6 +254,9 @@ case $USERNAME in
         #bindkey -M vicmd "u" undo
         #bindkey -M vicmd "ga" what-cursor-position
 
+        if [[ -d ~/src/zsh-completions/src ]]; then
+            fpath=(~/src/zsh-completions/src $fpath)
+        fi
         setopt nullglob
         #check if zload exists
         if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
@@ -266,12 +265,29 @@ case $USERNAME in
         fi
         setopt no_nullglob
 
+        if [[ -n $ENABLE_AUTOFU ]]; then
+            if whence auto-fu-init &> /dev/null; then
+                zle-line-init () {
+                    auto-fu-init
+                }
+                zle -N zle-keymap-select auto-fu-zle-keymap-select
+                zle -N zle-line-init
+                zstyle ':completion:*' completer _oldlist _complete _list _expand _ignored _match _prefix
+            fi
+        else
+            zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
+        fi
+
         FIGNORE='.pyc:.o'
 
         umask 022
         HISTFILE=~/.zsh_history
-        HISTSIZE=5000
-        SAVEHIST=5000
+        HISTSIZE=200000
+        SAVEHIST=200000
+
+        if [[ -d ~/bin/$OS ]]; then
+            PATH=~/bin/$OS:$PATH
+        fi
     ;;
 
     *)  #let's do this
@@ -410,6 +426,14 @@ function cd {
     fi
 }
 
+expand-or-complete-with-dots() {
+  echo -n "\e[31m...\e[0m"
+  zle expand-or-complete
+  zle redisplay
+}
+zle -N expand-or-complete-with-dots
+bindkey "^I" expand-or-complete-with-dots
+
 ## General completion technique - complete as much u can ..
 zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
 
@@ -421,17 +445,27 @@ zstyle ':completion:*:*:*:*:*' menu select
 
 ## formatting and messages
 zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format $'%{\e[0;31m%}%d%{\e[0m%}'
-zstyle ':completion:*:messages' format $'%{\e[0;31m%}%d%{\e[0m%}'
-zstyle ':completion:*:warnings' format $'%{\e[0;31m%}No matches for: %d%{\e[0m%}'
-zstyle ':completion:*:corrections' format $'%{\e[0;31m%}%d (errors: %e)%{\e[0m%}'
 zstyle ':completion:*' group-name ''
+#zstyle ':completion:*:descriptions' format $'%{\e[0;31m%}%d%{\e[0m%}'
+#zstyle ':completion:*:messages' format $'%{\e[0;31m%}%d%{\e[0m%}'
+#zstyle ':completion:*:warnings' format $'%{\e[0;31m%}No matches for: %d%{\e[0m%}'
+#zstyle ':completion:*:corrections' format $'%{\e[0;31m%}%d (errors: %e)%{\e[0m%}'
+
+zstyle ':completion:*:matches' group 'yes'
+zstyle ':completion:*:options' description 'yes'
+zstyle ':completion:*:options' auto-description '%d'
+zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
+zstyle ':completion:*:descriptions' format ' %F{yellow}-- %d --%f'
+zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+zstyle ':completion:*:default' list-prompt '%S%M matches%s'
 
 ## case-insensitive (uppercase from lowercase) completion
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 ## case-insensitive (all) completion
 #zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-## case-insensitive,partial-word and then substring completion
+## case-insensitive, partial-word and then substring completion
 #zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
 ## offer indexes before parameters in subscripts
@@ -444,11 +478,17 @@ zstyle ':completion:*:expand:*' tag-order all-expansions
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
 ## completion caching
-zstyle ':completion::complete:*' use-cache 1
+zstyle ':completion:*' use-cache yes
+zstyle ':completion::complete:*' use-cache yes
 zstyle ':completion::complete:*' cache-path ~/.zcompcache/$HOST
 
 ## add colors to completions
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*:*:cd:*' tag-order local-directories directory-stack \
+                              path-directories
+zstyle ':completion:*:-tilde-:*' group-order 'named-directories' 'path-directories' \
+                                 'users' 'expand'
+zstyle ':completion:*' squeeze-slashes true
 
 ## on processes completion complete all user processes
 zstyle ':completion:*:processes' command 'ps -au$USER'
