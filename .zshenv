@@ -20,20 +20,13 @@ authssh() {
 }
 
 case $HOST in
-    *kuci*)
-        if [[ -f /pkg/modules/init/zsh ]] then
-            . /pkg/modules/init/zsh
-            module load vim irc mh
-        fi
-        ;;
-
     scotch*|bourbon*)
         if [[ -f /pkg/modules/init/zsh ]] then
             . /pkg/modules/init/zsh
             module load default rsync nmh vim gsu screen rcs wget top \
                         cvs gcc perl gtar combo/sysadmin subversion
         else
-            echo "no modules on scotch, something fishy is going on"
+            echo "Expected modules on $HOST, something fishy is going on"
         fi
 
         case $(uname -r) in
@@ -41,14 +34,17 @@ case $HOST in
         esac
         ;;
 
-    #sun/linux/whatever path
-    *) PATH=/opt/local/bin:/usr/bin:/bin:/opt/local/sbin:/usr/sbin:$PATH
-       PATH=/usr/sfw/bin:$PATH
-        PATH=$PATH:/opt/sfw/gcc-3/bin:/pkg/bin:/sbin::/opt/sfw/bin
-        PATH=$PATH:/usr/X11R6/bin:/usr/local/bin 
-        MANPATH=/usr/man:/usr/share/man:/usr/sfw/man:/opt/sfw/man:/usr/dt/man
-        MANPATH=$MANPATH:/opt/sfw/mysql/man:/usr/local/man
-        MANPATH=$MANPATH:/opt/local/man
+    #sun/linux/meh whatever path
+    *)
+        path=(/usr/local/bin /usr/local/sbin
+              /opt/local/bin /opt/local/sbin
+              /usr/bin /bin /usr/sbin /sbin
+              /usr/sfw/bin /opt/sfw/gcc-3/bin
+              /opt/bin /opt/sbin /pkg/bin
+              /opt/X11/bin /usr/X11R6/bin $path)
+        manpath=(/usr/man /usr/share/man /usr/sfw/man /opt/sfw/man
+                 /usr/dt/man /opt/sfw/mysql/man /usr/local/man
+                 /opt/local/man $manpath)
         export PATH
         export MANPATH
         ;;
