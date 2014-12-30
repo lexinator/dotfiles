@@ -65,8 +65,9 @@ export LESS="-x3iX"
 export PAGER=less
 #
 export RSYNC_RSH=ssh
-export VAGRANT_CWD=~/Documents/stackinthebox
 export VAGRANT_DEFAULT_PROVIDER='vmware_fusion'
+export VAGRANT_VMWARE_CLONE_DIRECTORY=~/tmp/vagrant
 
-#get ssh agent
+[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
+
 authssh
