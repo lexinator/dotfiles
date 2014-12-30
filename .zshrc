@@ -1,3 +1,11 @@
+# profiling dotfiles https://kev.inburke.com/kevin/profiling-zsh-startup-time/
+PROFILE_STARTUP=false
+if [[ $PROFILE_STARTUP == true ]]; then
+    PS4=$'%D{%M%S%.} %N:%i> '
+    exec 3>&2 2>$HOME/tmp/startlog.$$
+    setopt xtrace prompt_subst
+fi
+
 # all the stuff below is for interactive sessions
 uptime
 
@@ -447,3 +455,8 @@ zstyle ':completion:*:processes' command 'ps -au$USER'
 
 ## add colors to processes for kill completion
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+if [[ $PROFILE_STARTUP == true ]]; then
+    unsetopt xtrace
+    exec 2>&3 3>&-
+fi
