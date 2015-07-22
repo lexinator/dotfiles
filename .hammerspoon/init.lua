@@ -227,18 +227,21 @@ screenWatcher:start()
 hs.hotkey.bind(hyper, "f5", vertical_resize)
 hs.hotkey.bind(hyper, "f6", horizontal_resize)
 hs.hotkey.bind(hyper, 'y', hs.toggleConsole)
-hs.hotkey.bind(hyper, 'u',  function()
+hs.hotkey.bind(hyper, 'u', function()
     hs.timer.doAfter(1, typeCurrentSafariURL)
 end)
 hs.hotkey.bind({"ctrl"}, ".", hs.hints.windowHints)
-hs.hotkey.bind(hyperoption, '1', hs.layout.apply(internal_display))
-hs.hotkey.bind(hyperoption, '2', hs.layout.apply(dual_display))
-
-
--- hs.urlevent.bind('fnv', function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
+hs.hotkey.bind(hyperoption, '1', function()
+    hs.layout.apply(internal_display)
+end)
+hs.hotkey.bind(hyperoption, '2', function()
+    hs.layout.apply(dual_display)
+end)
+hs.hotkey.bind(hyper, "V", function()
+    hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+end)
 
 -- TODO: take what's in the paste buffer and create a gist
-
 
 -- auto reload when file changes
 function reload_config(files)
