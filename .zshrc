@@ -241,23 +241,20 @@ case $USERNAME in
         bindkey -v
 
         #oh i'm sure there is some emacs special thing i'm overrriding
-        bindkey "^[[A" history-beginning-search-backward
-        bindkey "^[[B" history-beginning-search-forward
-        bindkey "^Xq" push-line-or-edit
-        bindkey "^Xr" history-incremental-search-backward
-        bindkey "^Xs" history-incremental-search-forward
-        bindkey "^[OA" history-beginning-search-backward
-        bindkey "^[OB" history-beginning-search-forward
+        # up arrow
+        bindkey "$terminfo[kcuu1]" history-substring-search-up
+        bindkey '^[[A' history-substring-search-up
+        # down arrow
+        bindkey "$terminfo[kcud1]" history-substring-search-down
+        bindkey '^[[B' history-substring-search-down
 
+        bindkey -M vicmd 'k' history-substring-search-up
+        bindkey -M vicmd 'j' history-substring-search-down
+
+        bindkey "^Xq" push-line-or-edit
         bindkey "^X_" insert-last-word
         bindkey "^Xa" accept-and-hold
-        bindkey -M vicmd "^R" redo
-
-        #bindkey "^E" expand-word
-        #bindkey "^N" menu-complete
-        #bindkey "^P" reverse-menu-complete
-        #bindkey -M vicmd "u" undo
-        #bindkey -M vicmd "ga" what-cursor-position
+        bindkey '^W' backward-kill-word
 
         if [[ -d ~/src/zsh-completions/src ]]; then
             fpath=(~/src/zsh-completions/src $fpath)
@@ -269,6 +266,9 @@ case $USERNAME in
             for config_file (~/zload/*.zsh) source $config_file
         fi
         setopt no_nullglob
+
+        HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND="bg=blue,fg=white,bold"
+        export HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND
 
         if [[ -n $ENABLE_AUTOFU ]]; then
             if whence auto-fu-init &> /dev/null; then
