@@ -240,21 +240,6 @@ case $USERNAME in
         export BINDKEYMODE="vi"
         bindkey -v
 
-        #oh i'm sure there is some emacs special thing i'm overrriding
-        # up arrow
-        bindkey "$terminfo[kcuu1]" history-substring-search-up
-        bindkey '^[[A' history-substring-search-up
-        # down arrow
-        bindkey "$terminfo[kcud1]" history-substring-search-down
-        bindkey '^[[B' history-substring-search-down
-
-        bindkey -M vicmd 'k' history-substring-search-up
-        bindkey -M vicmd 'j' history-substring-search-down
-
-        bindkey "^Xq" push-line-or-edit
-        bindkey "^X_" insert-last-word
-        bindkey "^Xa" accept-and-hold
-        bindkey '^W' backward-kill-word
 
         if [[ -d ~/src/zsh-completions/src ]]; then
             fpath=(~/src/zsh-completions/src $fpath)
@@ -298,16 +283,6 @@ case $USERNAME in
     *)  #let's do this
         if [[ $BINDKEYMODE == "vi" ]]; then
             bindkey -v
-            #oh i'm sure there is some emacs special thing i'm overrriding
-            bindkey "^[[A" history-beginning-search-backward
-            bindkey "^[[B" history-beginning-search-forward
-            bindkey "^Xq" push-line
-            bindkey "^Xr" history-incremental-search-backward
-            bindkey "^Xs" history-incremental-search-forward
-
-            bindkey "^X_" insert-last-word
-            bindkey "^Xa" accept-and-hold
-            bindkey -M vicmd "^R" redo
         else
             bindkey -e
         fi
@@ -317,6 +292,34 @@ case $USERNAME in
         SAVEHIST=0
     ;;
 esac
+
+if [[ $BINDKEYMODE == "vi" ]]; then
+    # see if history-substring is loaded
+    if declare -f history-substring-search-up 1>/dev/null; then
+        # up arrow
+        bindkey "$terminfo[kcuu1]" history-substring-search-up
+        bindkey '^[[A' history-substring-search-up
+        # down arrow
+        bindkey "$terminfo[kcud1]" history-substring-search-down
+        bindkey '^[[B' history-substring-search-down
+
+        bindkey -M vicmd 'k' history-substring-search-up
+        bindkey -M vicmd 'j' history-substring-search-down
+    else
+        bindkey "^[[A" history-beginning-search-backward
+        bindkey "^[OA" history-beginning-search-backward
+        bindkey "^Xr" history-incremental-search-backward
+        bindkey "^[[B" history-beginning-search-forward
+        bindkey "^[OB" history-beginning-search-forward
+        bindkey "^Xs" history-incremental-search-forward
+    fi
+
+    bindkey "^Xq" push-line-or-edit
+    bindkey "^X_" insert-last-word
+    bindkey "^Xa" accept-and-hold
+    bindkey '^W' backward-kill-word
+    bindkey ' ' magic-space
+fi
 setprompt
 
 # zsh version specific commands
