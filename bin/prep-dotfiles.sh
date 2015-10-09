@@ -39,7 +39,7 @@ symdirs() {
 symfiles $BASE/dotfiles/.[a-zA-Z]*
 
 #deal with all private stuff
-symdirs $BASE/local/{bin,zload}
+symdirs $BASE/local/{shared,zload}
 
 #few more files
 symfiles $BASE/local/.zshrc.local

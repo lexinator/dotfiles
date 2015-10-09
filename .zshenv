@@ -51,6 +51,9 @@ case $HOST in
         ;;
 esac
 
+if [[ -e ~$USERNAME/bin/shared ]]; then
+    export PATH=~$USERNAME/bin/shared:$PATH
+fi
 if [[ -d ~$USERNAME/bin ]]; then
     export PATH=~$USERNAME/bin:$PATH
 fi
