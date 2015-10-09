@@ -240,6 +240,56 @@ case $USERNAME in
         export BINDKEYMODE="vi"
         bindkey -v
 
+        setopt complete_aliases
+        if whence git &> /dev/null; then
+            GIT_VERSION=$(git --version | awk '{$print $2}')
+
+            function git_lex {
+                cmd=$1
+                shift
+
+                set -x
+                case $cmd in
+                    commit|amend)
+                        extra='--verbose'
+                        ;;
+                    ogpull)
+                        cmd='pull'
+                        extra='--stat'
+                        ;;
+                    rebase)
+                        # can't add when using --abort
+                        case $@[1] in
+                            --abort) ;;
+                            *) extra='--verbose' ;;
+                        esac
+                        ;;
+                    pull)
+                        git fetch
+                        cmd='rebase'
+                        extra='--stat'
+
+                        # autostash doesn't exist on 1.7.1
+                        case $GIT_VERSION in
+                            2*) extra="$extra --autostash" ;;
+                        esac
+
+                        #remove --rebase if it exists
+                        argv[$argv[(i)--rebase]]=()
+                        ;;
+                    cherry-pick)
+                        extra='--autostash'
+                        ;;
+                    *)
+                        extra=""
+                        ;;
+                esac
+
+                git $cmd $=extra $@
+                set +x
+            }
+            alias git='git_lex'
+        fi
 
         if [[ -d ~/src/zsh-completions/src ]]; then
             fpath=(~/src/zsh-completions/src $fpath)
