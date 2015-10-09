@@ -242,13 +242,12 @@ case $USERNAME in
 
         setopt complete_aliases
         if whence git &> /dev/null; then
-            GIT_VERSION=$(git --version | awk '{$print $2}')
+            GIT_VERSION=$(git --version | awk '{print $2}')
 
             function git_lex {
                 cmd=$1
                 shift
 
-                set -x
                 case $cmd in
                     commit|amend)
                         extra='--verbose'
@@ -286,7 +285,6 @@ case $USERNAME in
                 esac
 
                 git $cmd $=extra $@
-                set +x
             }
             alias git='git_lex'
         fi
