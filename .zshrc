@@ -305,19 +305,6 @@ case $USERNAME in
         HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND="bg=blue,fg=white,bold"
         export HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND
 
-        if [[ -n $ENABLE_AUTOFU ]]; then
-            if whence auto-fu-init &> /dev/null; then
-                zle-line-init () {
-                    auto-fu-init
-                }
-                zle -N zle-keymap-select auto-fu-zle-keymap-select
-                zle -N zle-line-init
-                zstyle ':completion:*' completer _oldlist _complete _list _expand _ignored _match _prefix
-            fi
-        else
-            zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
-        fi
-
         FIGNORE='.pyc:.o'
 
         umask 022
@@ -553,6 +540,19 @@ zstyle ':completion:*:processes' command 'ps -au$USER'
 
 ## add colors to processes for kill completion
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+if [[ -z $ENABLE_AUTOFU ]]; then
+    if whence auto-fu-init &> /dev/null; then
+        zle-line-init () {
+            auto-fu-init
+        }
+        zle -N zle-keymap-select auto-fu-zle-keymap-select
+        zle -N zle-line-init
+        zstyle ':completion:*' completer _oldlist _complete _list _expand _ignored _match _prefix
+    fi
+else
+    zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
+fi
 
 if [[ $PROFILE_STARTUP == true ]]; then
     unsetopt xtrace
