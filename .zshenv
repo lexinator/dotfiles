@@ -2,6 +2,7 @@
 # a worthy start up file
 #
 umask 022
+setopt no_global_rcs
 
 authssh() {
     #grab ssh agent session if available
