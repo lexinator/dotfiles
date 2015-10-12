@@ -143,7 +143,10 @@ hs.grid.GRIDHEIGHT = 4
 hs.grid.MARGINX = 0
 hs.grid.MARGINY = 0
 
--- debugging
+--  every window hint starts with the 1st character of the parent apps title
+hs.hints.style = "vimperator"
+
+-- debugging tool start
 local point_in_rect = function(rect, point)
     return  point.x >= rect.x and
             point.y >= rect.y and
@@ -176,14 +179,14 @@ dev:bind({}, "A",
         dev:exit()
     end
 )
--- debugging
+-- debugging tool end
 
 -- Define window layouts
 -- {"App name", "Window name", "Display Name", "unitrect", "framerect", "fullframerect"},
 local internal_display = {
     {"Safari",        nil,        display_laptop, hs.layout.left70,         nil, nil},
     {"Mail",          nil,        display_laptop, {x=0, y=0, w=0.75, h=0.9}, nil, nil},
-    {"IntelliJ IDEA", nil,        display_laptop, hs.layout.left75,         nil, nil},
+    {"IntelliJ IDEA", nil,        display_laptop, {x=0, y=0, w=0.9, h=1},  nil, nil},
 
     {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3},  nil, nil},
     {"Adium",         "Contacts", display_laptop, {x=0, y=0, w=0.1, h=1},   nil, nil},
@@ -201,24 +204,23 @@ local dual_display = {
     {"iTunes",        "iTunes",   display_laptop,  hs.layout.left75,        nil, nil},
 }
 
+-- Defines for screen watcher
+local numberOfScreens = #hs.screen.allScreens()
+
 -- Callback function for changes in screen layout
 function screensChangedCallback()
-    newNumberOfScreens = #hs.screen.allScreens()
+    currentNumberOfScreens = #hs.screen.allScreens()
 
-    if lastNumberOfScreens ~= newNumberOfScreens then
-        if newNumberOfScreens == 1 then
+    if numberOfScreens ~= currentNumberOfScreens then
+        if currentNumberOfScreens == 1 then
             hs.layout.apply(internal_display)
-        elseif newNumberOfScreens == 2 then
+        elseif currentNumberOfScreens == 2 then
             hs.layout.apply(dual_display)
         end
     end
 
-    lastNumberOfScreens = newNumberOfScreens
---
--- --    renderStatuslets()
--- --    updateStatuslets()
+    numberOfScreens = currentNumberOfScreens
 end
-
 screenWatcher = hs.screen.watcher.new(screensChangedCallback)
 screenWatcher:start()
 
