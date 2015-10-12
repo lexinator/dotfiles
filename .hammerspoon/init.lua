@@ -2,8 +2,8 @@ hs.ipc.cliInstall()
 
 save_window_state = {}
 
-local hyper = {"cmd", "ctrl"}
-local hyperoption = {"cmd", "alt", "ctrl"}
+local cmd_ctrl = {"cmd", "ctrl"}
+local cmd_alt_ctrl = {"cmd", "alt", "ctrl"}
 
 function vertical_resize()
   local win = hs.window.focusedWindow()
@@ -161,7 +161,7 @@ local window_underneath_mouse = function()
     return win or window.windowForID(0) or window.windowForID(nil)
 end
 
-local dev = hs.hotkey.modal.new(hyperoption, "=")
+local dev = hs.hotkey.modal.new(cmd_alt_ctrl, "=")
 
 function dev:entered() hs.alert.show('entered Debug modal  <esc> to exit') end
 function dev:exited()  hs.alert.show('exited Debug modal') end
@@ -224,21 +224,42 @@ end
 screenWatcher = hs.screen.watcher.new(screensChangedCallback)
 screenWatcher:start()
 
-hs.hotkey.bind(hyper, "f5", vertical_resize)
-hs.hotkey.bind(hyper, "f6", horizontal_resize)
-hs.hotkey.bind(hyper, 'y', hs.toggleConsole)
-hs.hotkey.bind(hyper, 'u', function()
+hs.hotkey.bind(cmd_ctrl, "f5", vertical_resize)
+hs.hotkey.bind(cmd_ctrl, "f6", horizontal_resize)
+hs.hotkey.bind(cmd_ctrl, 'y', hs.toggleConsole)
+hs.hotkey.bind(cmd_ctrl, 'a', toggle_audio_output)
+hs.hotkey.bind(cmd_ctrl, 'u', function()
     hs.timer.doAfter(1, typeCurrentSafariURL)
 end)
+hs.hotkey.bind(cmd_ctrl, "V", function()
+    hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+end)
+hs.hotkey.bind(cmd_ctrl, "h", function()
+    helpstr = [[
+Vertical Resize                    ⌘⌃ F5
+Horizonital Resize               ⌘⌃ F6
+
+Console                               ⌘⌃ y
+
+Audio Toggle                       ⌘⌃ a
+Paste Current Safari URL   ⌘⌃ u
+
+Window Hints                        ⌃ .
+
+Single Monitor Layout      ⌘⌥⌃ 1
+Dual Monitor Layout         ⌘⌥⌃ 2
+
+Paste                                 ⌘⌃ v
+Help                                  ⌘⌃ h]]
+    hs.alert.show(helpstr, 5)
+end)
+
 hs.hotkey.bind({"ctrl"}, ".", hs.hints.windowHints)
-hs.hotkey.bind(hyperoption, '1', function()
+hs.hotkey.bind(cmd_alt_ctrl, '1', function()
     hs.layout.apply(internal_display)
 end)
-hs.hotkey.bind(hyperoption, '2', function()
+hs.hotkey.bind(cmd_alt_ctrl, '2', function()
     hs.layout.apply(dual_display)
-end)
-hs.hotkey.bind(hyper, "V", function()
-    hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 end)
 
 -- TODO: take what's in the paste buffer and create a gist
