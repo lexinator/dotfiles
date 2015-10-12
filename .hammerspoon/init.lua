@@ -61,7 +61,7 @@ function horizontal_resize()
   local screen = win:screen()
   local max = screen:frame()
 
-  print("frame.w:" .. frame.w .. " max.w:" .. max.w)
+--  print("frame.w:" .. frame.w .. " max.w:" .. max.w)
 
   -- store current size
   if (frame.x + 4 == max.x or frame.x == max.x) and (frame.w == max.w) then
@@ -116,7 +116,8 @@ end
 -- borrowed from
 --    https://github.com/cmsj/hammerspoon-config/blob/master/init.lua
 function typeCurrentSafariURL()
-    script = [[
+    local ok, result
+    local script = [[
     tell application "Safari"
         set currentURL to URL of document 1
     end tell
@@ -125,10 +126,6 @@ function typeCurrentSafariURL()
     ok, result = hs.applescript(script)
     if (ok) then
         hs.eventtap.keyStrokes(result)
-
---        hs.notify.new({
---          title='Hammerspoon', informativeText=result
---        }):send():release()
     end
 end
 
@@ -136,8 +133,9 @@ end
 local display_laptop = "Color LCD"
 local display_monitor = "Thunderbolt Display"
 
--- Defines for screen watcher
-local lastNumberOfScreens = #hs.screen.allScreens()
+-- Define audio device names for headphone/speaker switching
+local workHeadphoneDevice = "Turtle Beach USB Audio"
+local laptopSpeakerDevice = "Built-in Output"
 
 -- Defines for window grid
 hs.grid.GRIDWIDTH = 4
@@ -224,6 +222,103 @@ end
 screenWatcher = hs.screen.watcher.new(screensChangedCallback)
 screenWatcher:start()
 
+-- Toggle between laptop speakers and turtle beach audio
+function toggle_audio_output()
+    local current = hs.audiodevice.defaultOutputDevice()
+    local speakers = hs.audiodevice.findOutputByName(laptopSpeakerDevice)
+    local headphones = hs.audiodevice.findOutputByName(workHeadphoneDevice)
+
+    if not speakers or not headphones then
+        hs.notify.new({
+            title="Hammerspoon",
+            informativeText="ERROR: Can't toggle some audio devices are missing",
+            }):send()
+        return
+    end
+
+    if current:name() == speakers:name() then
+        headphones:setDefaultOutputDevice()
+    else
+        speakers:setDefaultOutputDevice()
+    end
+    hs.notify.new({
+        title='Hammerspoon',
+        informativeText='Audio:'..hs.audiodevice.defaultOutputDevice():name()
+    }):send()
+end
+
+function set_headphones()
+    local current = hs.audiodevice.defaultOutputDevice()
+    local headphones = hs.audiodevice.findOutputByName(workHeadphoneDevice)
+
+    if not headphones then
+        hs.notify.new({
+            title="Hammerspoon",
+            informativeText="ERROR: headphones device missing",
+            ""}):send()
+        return
+    end
+
+    if current:name() ~= headphones:name() then
+        headphones:setDefaultOutputDevice()
+    end
+end
+
+-- Callback function for USB device events
+function usbDeviceCallback(data)
+    print("usbDeviceCallback: "..hs.inspect(data))
+
+    if (data["productName"] == "Apple Thunderbolt Display") then
+        event = data["eventType"]
+
+        if (event == "added") then
+            -- at a desk with two monitors
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Found Thunderbolt Display: Disabling wifi",
+            }):send()
+
+            os.execute("networksetup -setairportpower en0 off")
+            os.execute("/Users/ludeman/bin/vpn vpn --action disconnect")
+        elseif (event == "removed") then
+            -- only using laptop monitor
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Laptop monitor: Enabling wifi",
+            }):send()
+
+            -- Turn on wifi on your macbook from the Mac OSX terminal command line:
+            os.execute("networksetup -setairportpower en0 on")
+        end
+    end
+
+    if (data["productName"] == "Turtle Beach USB Audio") then
+        event = data["eventType"]
+
+        if (event == "added") then
+            -- at a sunnyvale desk with USB Audio
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Audio set to TurtleBeach USB Audio",
+            }):send()
+
+            hs.audiodevice.defaultOutputDevice():setVolume(15)
+            set_headphones()
+        elseif (event == "removed") then
+            -- only using laptop monitor
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Audio set to laptop speakers",
+            }):send()
+
+            hs.audiodevice.defaultOutputDevice():setVolume(15)
+        end
+    end
+end
+
+usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
+usbWatcher:start()
+
 hs.hotkey.bind(cmd_ctrl, "f5", vertical_resize)
 hs.hotkey.bind(cmd_ctrl, "f6", horizontal_resize)
 hs.hotkey.bind(cmd_ctrl, 'y', hs.toggleConsole)
@@ -279,4 +374,7 @@ end
 
 hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/",
                    reload_config):start()
-hs.notify.show("Hammerspoon", "", "Config loaded", "")
+hs.notify.new({
+    title='Hammerspoon',
+    informativeText='Config loaded'
+}):send()
