@@ -373,41 +373,25 @@ end
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
 
-hs.hotkey.bind(cmd_ctrl, "f5", vertical_resize)
-hs.hotkey.bind(cmd_ctrl, "f6", horizontal_resize)
-hs.hotkey.bind(cmd_ctrl, 'y', hs.toggleConsole)
-hs.hotkey.bind(cmd_ctrl, 'a', toggle_audio_output)
-hs.hotkey.bind(cmd_ctrl, 'u', function()
+hs.hotkey.bind(cmd_ctrl, "f5", 'Vertical Resize', vertical_resize)
+hs.hotkey.bind(cmd_ctrl, "f6", 'Horizontial Resize', horizontal_resize)
+hs.hotkey.bind(cmd_ctrl, 'j', 'Console', hs.toggleConsole)
+hs.hotkey.bind(cmd_ctrl, 'a', 'Audio Toggle', toggle_audio_output)
+hs.hotkey.bind(cmd_ctrl, 'c', 'Connect VPN', vpn_connect)
+hs.hotkey.bind(cmd_ctrl, 'd', 'Disconnect VPN', vpn_disconnect)
+hs.hotkey.bind(cmd_ctrl, 'u', 'Paste Current Safari URL', function()
     hs.timer.doAfter(1, typeCurrentSafariURL)
 end)
-hs.hotkey.bind(cmd_ctrl, "V", function()
+hs.hotkey.bind(cmd_ctrl, "V", 'Paste (simulated keypresses)', function()
     hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 end)
-hs.hotkey.bind(cmd_ctrl, "h", function()
-    helpstr = [[
-Vertical Resize                    ⌘⌃ F5
-Horizonital Resize               ⌘⌃ F6
+hs.hotkey.showHotkeys(cmd_ctrl, 'h')
 
-Console                               ⌘⌃ y
-
-Audio Toggle                       ⌘⌃ a
-Paste Current Safari URL   ⌘⌃ u
-
-Window Hints                        ⌃ .
-
-Single Monitor Layout      ⌘⌥⌃ 1
-Dual Monitor Layout         ⌘⌥⌃ 2
-
-Paste                                 ⌘⌃ v
-Help                                  ⌘⌃ h]]
-    hs.alert.show(helpstr, 5)
-end)
-
-hs.hotkey.bind({"ctrl"}, ".", hs.hints.windowHints)
-hs.hotkey.bind(cmd_alt_ctrl, '1', function()
+hs.hotkey.bind({"ctrl"}, ".", 'Window Hints', hs.hints.windowHints)
+hs.hotkey.bind(cmd_alt_ctrl, '1', 'Single Monitor Layout', function()
     hs.layout.apply(internal_display)
 end)
-hs.hotkey.bind(cmd_alt_ctrl, '2', function()
+hs.hotkey.bind(cmd_alt_ctrl, '2', 'Dual Monitor Layout', function()
     hs.layout.apply(dual_display)
 end)
 hs.hotkey.bind(cmd_alt_ctrl, '0', 'Show watchers', function()
