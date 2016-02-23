@@ -113,6 +113,22 @@ function horizontal_resize()
   end
 end
 
+function vpn_connect()
+    hs.notify.new({
+        title="Hammerspoon",
+        informativeText="Connecting vpn...",
+    }):send()
+    os.execute("/Users/ludeman/bin/tvpn")
+end
+
+function vpn_disconnect()
+    hs.notify.new({
+        title="Hammerspoon",
+        informativeText="Disabling vpn...",
+    }):send()
+    os.execute("/usr/local/bin/appleconnect vpn --action disconnect")
+end
+
 -- borrowed from
 --    https://github.com/cmsj/hammerspoon-config/blob/master/init.lua
 function typeCurrentSafariURL()
@@ -155,30 +171,65 @@ local point_in_rect = function(rect, point)
 end
 
 local window_underneath_mouse = function()
-    local pos = hs.mouse.get()
+    local pos = hs.mouse.getAbsolutePosition()
     local win = hs.fnutils.find(hs.window.orderedWindows(), function(window)
         return point_in_rect(window:frame(), pos)
     end)
     return win or window.windowForID(0) or window.windowForID(nil)
 end
 
-local dev = hs.hotkey.modal.new(cmd_alt_ctrl, "=")
-
-function dev:entered() hs.alert.show('entered Debug modal  <esc> to exit') end
-function dev:exited()  hs.alert.show('exited Debug modal') end
-dev:bind({}, 'escape',
+local dev = hs.hotkey.modal.new(cmd_alt_ctrl, "=", 'Debug Modal')
+function dev:entered()
+    hs.alert.show('entered Debug modal  <esc> to exit', 5)
+end
+dev:bind({}, 'escape', 'Quit Debug Modal',
     function()
         dev:exit()
     end)
 
-dev:bind({}, "A",
+dev:bind({}, "A", 'Show Window underneath Mouse',
     function()
         local win = window_underneath_mouse()
         print("App: '" .. win:application():title() ..
                 "' Window: '" .. win:title() .. "'")
+        print(" x:" ..win:frame().x ..
+              " y:" ..win:frame().y ..
+              " h:" ..win:frame().h ..
+              " w:" ..win:frame().w)
         dev:exit()
     end
 )
+dev:bind({}, "B", 'Show prev Window underneath Mouse',
+    function()
+        local win = window_underneath_mouse()
+        local id = win:id()
+        local prev_state = save_window_state[id]
+
+        print("App: '" .. win:application():title() ..
+                "' Window: '" .. win:title() .. "'")
+        print(" x:" ..win:frame().x ..
+              " y:" ..win:frame().y ..
+              " h:" ..win:frame().h ..
+              " w:" ..win:frame().w)
+
+        if prev_state then
+            print(" prev_state.x:" .. prev_state.x ..
+                  " prev_state.y:" .. prev_state.y ..
+                  " prev_state.h:" .. prev_state.h ..
+                  " prev_state.w:" .. prev_state.w)
+        else
+            print("no prev_state")
+        end
+
+        local screen = win:screen()
+        local max = screen:frame()
+        print(" max.x:" .. max.x ..
+              " max.y:" .. max.y ..
+              " max.h:" .. max.h ..
+              " max.w:" .. max.w)
+    end
+)
+
 -- debugging tool end
 
 -- Define window layouts
