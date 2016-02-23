@@ -14,7 +14,7 @@ function vertical_resize()
   local max = screen:frame()
 
   -- store current size
-  if (frame.h + 4 == max.h or frame.h == max.h) and (frame.y == max.y) then
+  if (frame.h >= max.h - 10 or frame.h <= max.h) and frame.y == max.y then
       local prev_state = save_window_state[id]
       if prev_state then
         frame.x = prev_state.x
@@ -61,10 +61,8 @@ function horizontal_resize()
   local screen = win:screen()
   local max = screen:frame()
 
---  print("frame.w:" .. frame.w .. " max.w:" .. max.w)
-
   -- store current size
-  if (frame.x + 4 == max.x or frame.x == max.x) and (frame.w == max.w) then
+  if (frame.w >= max.w - 10 or frame.w <= max.w) and frame.x == max.x then
       local prev_state = save_window_state[id]
       if prev_state then
         frame.x = prev_state.x
