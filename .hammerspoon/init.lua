@@ -1,6 +1,8 @@
 hs.ipc.cliInstall()
 
+--
 save_window_state = {}
+local configFileWatcher = nil
 
 local cmd_ctrl = {"cmd", "ctrl"}
 local cmd_alt_ctrl = {"cmd", "alt", "ctrl"}
@@ -356,6 +358,11 @@ end)
 hs.hotkey.bind(cmd_alt_ctrl, '2', function()
     hs.layout.apply(dual_display)
 end)
+hs.hotkey.bind(cmd_alt_ctrl, '0', 'Show watchers', function()
+    print(configFileWatcher)
+    print(screenWatcher)
+    print(usbWatcher)
+end)
 
 -- TODO: take what's in the paste buffer and create a gist
 
@@ -372,8 +379,9 @@ function reload_config(files)
     end
 end
 
-hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/",
-                   reload_config):start()
+configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/",
+                                       reload_config)
+configFileWatcher:start()
 hs.notify.new({
     title='Hammerspoon',
     informativeText='Config loaded'
