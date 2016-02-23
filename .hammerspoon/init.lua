@@ -126,7 +126,7 @@ function vpn_disconnect()
         title="Hammerspoon",
         informativeText="Disabling vpn...",
     }):send()
-    os.execute("/usr/local/bin/appleconnect vpn --action disconnect")
+    os.execute("/Users/ludeman/bin/vpn vpn --action disconnect")
 end
 
 -- borrowed from
@@ -330,9 +330,10 @@ function usbDeviceCallback(data)
                 title="Hammerspoon",
                 informativeText="Found Thunderbolt Display: Disabling wifi",
             }):send()
-
             os.execute("networksetup -setairportpower en0 off")
-            os.execute("/Users/ludeman/bin/vpn vpn --action disconnect")
+
+            -- give time to let network settle before trying to disconnect
+            hs.timer.doAfter(5, vpn_disconnect)
         elseif (event == "removed") then
             -- only using laptop monitor
             hs.notify.new({
