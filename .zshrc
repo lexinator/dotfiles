@@ -597,6 +597,13 @@ else
                            _correct _approximate _prefix _user_expand
 fi
 
+zstyle ':completion:most-recent-file:*' match-original both
+zstyle ':completion:most-recent-file:*' file-sort modification
+zstyle ':completion:most-recent-file:*' file-patterns '*:all\ files'
+zstyle ':completion:most-recent-file:*' hidden all
+zstyle ':completion:most-recent-file:*' completer _files
+zle -C most-recent-file menu-complete _generic
+bindkey "^N" most-recent-file
 
 autoload -U url-quote-magic
 zle -N self-insert url-quote-magic
