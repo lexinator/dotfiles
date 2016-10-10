@@ -69,7 +69,6 @@ export LESS="-x3iX"
 export PAGER=less
 #
 export RSYNC_RSH=ssh
-export VAGRANT_DEFAULT_PROVIDER='vmware_fusion'
 export VAGRANT_VMWARE_CLONE_DIRECTORY=~/tmp/vagrant
 export SELFIE_UPDATE_NAG=1
 
