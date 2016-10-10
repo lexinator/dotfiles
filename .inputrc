@@ -1,0 +1,11 @@
+set editing-mode vi
+set keymap vi
+
+set completion-prefix-display-length 2
+
+# make completions appear immediately after pressing TAB once
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+
+# underscores and hyphens are treated equally when completing
+set completion-map-case on
