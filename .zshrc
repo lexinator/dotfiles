@@ -12,13 +12,16 @@ uptime
 OS=$(uname -s)
 
 #prompts
-PROMPT='%n@%m%#' ; RPROMPT='%(?..[%?])%T %v%~'
+PROMPT='%n@%m%#'
+RPROMPT='%(?..[%?])%T %v%~'
 REPORTTIME=7
 
 # my general preferences
 setopt autolist auto_menu nohup list_types always_last_prompt auto_cd correct
 setopt append_history hist_ignore_dups hist_ignore_space auto_resume
 setopt hist_no_store extended_history complete_in_word ALWAYS_TO_END
+setopt hist_expire_dups_first hist_reduce_blanks transient_rprompt
+setopt share_history hist_find_no_dups inc_append_history
 unsetopt list_beep menu_complete
 
 #aliases
@@ -34,8 +37,9 @@ alias les='less'
 alias ttyset='set noglob; eval `tset -sQ -m :?vt100` ; unset noglob'
 alias rsync='rsync -av --progress --stats'
 alias aptinstall='apt-get update 1> /dev/null && apt-get install --force-yes'
-alias tcpcount='netstat -an | egrep -v "127.0.0|10.16|^udp|^unix|LISTEN|^Proto|Active" | awk "{print \$6}" | sort | uniq -c | sort -nr' 
+alias tcpcount='netstat -an | egrep -v "127.0.0|10.16|^udp|^unix|LISTEN|^Proto|Active" | awk "{print \$6}" | sort | uniq -c | sort -nr'
 alias pss='ps -e -o pid,user,rss,vsz,stime,time,args'
+alias http='http --style solarized'
 
 if whence vim &> /dev/null; then
     alias vi=vim
@@ -87,21 +91,16 @@ case $OS in
     Darwin)
         psvar="${psvar}-$(sw_vers -productVersion)"
         export COMMAND_MODE=unix2003
-        #manpage for arrangement
+        #manpage for definition
         export LSCOLORS=ExGxDxdxCxegedabagacad
         export GREP_COLOR='1;32'
         export GREP_OPTIONS='--color=auto'
         alias ls='ls -G'
         alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-        # use gui vim (in practice the focus is not returned after exiting...)
-        #if [[ -d /Applications/MacVim.app ]] && \
-        #        [[ -n $SECURITYSESSIONID || -n $TERM_SESSION_ID ]]; then
-        #    alias vi='mvim'
-        #fi
         export BROWSER='open'
-        #wtf, darwin defaults to sorted by PID
+        # darwin defaults to sorted by PID...
         alias top='top -ocpu'
-        ;; 
+        ;;
 esac
 
 function setprompt {
@@ -120,7 +119,7 @@ function setprompt {
     PR_LRCORNER=${altchar[j]:--}
     PR_URCORNER=${altchar[k]:--}
 
-    #TODO: figure out in utf
+    #TODO: figure out when in utf
     #PR_RIGHTARROW="➤"
     PR_RIGHTARROW=">"
     PR_LEFTARROW=${altchar[<]:-<}
@@ -163,7 +162,6 @@ function setprompt {
         # use 16 colors
         autoload -U colors
         colors
-
         if [[ -n $fg ]]; then
             PR_CYAN="$fg[cyan]"
             PR_WHITE="$fg[white]"
@@ -290,14 +288,19 @@ case $USERNAME in
             alias git='git_lex'
         fi
 
+        # use even more autocompletions
         if [[ -d ~/src/zsh-completions/src ]]; then
             fpath=(~/src/zsh-completions/src $fpath)
         fi
-        setopt nullglob
+
         #check if zload exists
+        setopt nullglob
         if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
             fpath=(~/zload $fpath)
             for config_file (~/zload/*.zsh) source $config_file
+            setopt extendedglob
+            for config_file (~/zload/^*.zsh) autoload -U $config_file:t
+            setopt no_extendedglob
         fi
         setopt no_nullglob
 
@@ -358,58 +361,54 @@ if [[ $BINDKEYMODE == "vi" ]]; then
 fi
 setprompt
 
-# zsh version specific commands
-case $ZSH_VERSION in
-    3.1*|4*|5*)
-        setopt hist_expire_dups_first hist_reduce_blanks transient_rprompt
-        setopt share_history hist_save_no_dups inc_append_history
+setopt null_glob
+fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions
+       /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions
+       ~/public/share/zsh/*/functions)
+unsetopt null_glob
 
-        setopt null_glob
-        fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions ~/public/share/zsh/*/functions )
-        unsetopt null_glob
+#remove any duplicates
+typeset -U fpath
 
-        #remove any duplicates
-        typeset -U fpath
+autoload -U compinit
+compinit -C -d ~/.zcompdump_$ZSH_VERSION
 
-        autoload -U compinit
+function preexec {
+    emulate -L zsh
+    local -a cmd
+    # Re-parse the command line
+    cmd=(${(z)1})
 
-        # don't perform security check
-        compinit -C -d ~/.zcompdump_$ZSH_VERSION
+    # Construct a command that will output the desired job number.
+    case $cmd[1] in
+        fg)
+            if (( $#cmd == 1 )); then
+                # No arguments, must find the current job
+                cmd=(builtin jobs -l %+)
+            else
+                # Replace the command name, ignore extra args.
+                cmd=(builtin jobs -l ${(Q)cmd[2]})
+            fi
+            ;;
+        # Same as "else" %above
+        %*) cmd=(builtin jobs -l ${(Q)cmd[1]}) ;;
 
-        function preexec {
-            emulate -L zsh
-            local -a cmd; cmd=(${(z)1})        # Re-parse the command line
+        # Not resuming a job, so we're all done
+        *)
+          title $cmd[1]:t "$cmd[2,-1]"
+          return
+          ;;
+    esac
 
-            # Construct a command that will output the desired job number.
-            case $cmd[1] in
-                fg) if (( $#cmd == 1 )); then
-                          # No arguments, must find the current job
-                          cmd=(builtin jobs -l %+)
-                      else
-                          # Replace the command name, ignore extra args.
-                          cmd=(builtin jobs -l ${(Q)cmd[2]})
-                      fi;;
-                  # Same as "else" %above
-                %*) cmd=(builtin jobs -l ${(Q)cmd[1]});;
+    # Copy jobtexts for subshell
+    local -A jt; jt=(${(kv)jobtexts})
 
-                *) title $cmd[1]:t "$cmd[2,-1]"   # Not resuming a job,
-                    return;;                      # so we're all done
-            esac
-
-            local -A jt; jt=(${(kv)jobtexts})     # Copy jobtexts for subshell
-
-            # Run the command, read its output, and look up the jobtext.
-            # Could parse $rest here, but $jobtexts (via $jt) is easier.
-            $cmd >>(read num rest
-                    cmd=(${(z)${(e):-\$jt$num}})
-            title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
-        }
-        ;;
-    *)  #ancient version of zsh
-        echo "zstyle completion not available in zsh-$ZSH_VERSION"
-        function zstyle { }
-        ;;
-esac
+    # Run the command, read its output, and look up the jobtext.
+    # Could parse $rest here, but $jobtexts (via $jt) is easier.
+    $cmd >>(read num rest
+            cmd=(${(z)${(e):-\$jt$num}})
+    title $cmd[1]:t "$cmd[2,-1]") 2>/dev/null
+}
 
 # under screen label the screen window, under xterm label title bar
 function title {
@@ -452,8 +451,8 @@ $(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
 }
 
 # cd to a file (cd path/path/file)
-# go to the directory containing the file, no questions asked 
-#added support for cd foo bar to change from /foo/subdir to /bar/subdir 
+# go to the directory containing the file, no questions asked
+# added support for cd foo bar to change from /foo/subdir to /bar/subdir
 function cd {
     if [[ -z $2 ]]; then
         if [[ -f $1 ]]; then
@@ -481,19 +480,15 @@ bindkey "^I" expand-or-complete-with-dots
 ## General completion technique - complete as much u can ..
 zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
 
-## allow one error for every three characters typed in approximate completer
+# allow one error for every three characters typed in approximate completer
 zstyle -e ':completion:*:approximate:*' max-errors 'reply=( $(( ($#PREFIX+$#SUFFIX)/3 )) numeric )'
 
 # when cycling through items, highlight item
-zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' menu select
 
-## formatting and messages
+# formatting and messages
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' group-name ''
-#zstyle ':completion:*:descriptions' format $'%{\e[0;31m%}%d%{\e[0m%}'
-#zstyle ':completion:*:messages' format $'%{\e[0;31m%}%d%{\e[0m%}'
-#zstyle ':completion:*:warnings' format $'%{\e[0;31m%}No matches for: %d%{\e[0m%}'
-#zstyle ':completion:*:corrections' format $'%{\e[0;31m%}%d (errors: %e)%{\e[0m%}'
 
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
@@ -505,23 +500,26 @@ zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
 zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
 zstyle ':completion:*:default' list-prompt '%S%M matches%s'
 
-## case-insensitive (uppercase from lowercase) completion
+# case-insensitive (uppercase from lowercase) completion
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-## case-insensitive (all) completion
+# case-insensitive (all) completion
 #zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-## case-insensitive, partial-word and then substring completion
+# case-insensitive, partial-word and then substring completion
 #zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
-## offer indexes before parameters in subscripts
+# statusline for many hits
+zstyle ':completion:*:default' select-prompt $'\e[01;35m -- Match %M    %P -- \e[00;00m'
+
+# offer indexes before parameters in subscripts
 zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
 
-## insert all expansions for expand completer
+# insert all expansions for expand completer
 zstyle ':completion:*:expand:*' tag-order all-expansions
 
-## ignore completion functions (until the _ignored completer)
+# Ignore internal zsh functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-## completion caching
+# completion caching
 zstyle ':completion:*' use-cache yes
 zstyle ':completion::complete:*' use-cache yes
 zstyle ':completion::complete:*' cache-path ~/.zcompcache/$HOST
@@ -530,15 +528,19 @@ zstyle ':completion::complete:*' cache-path ~/.zcompcache/$HOST
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:*:cd:*' tag-order local-directories directory-stack \
                               path-directories
-zstyle ':completion:*:-tilde-:*' group-order 'named-directories' 'path-directories' \
-                                 'users' 'expand'
+zstyle ':completion:*:-tilde-:*' group-order 'named-directories' \
+                                 'path-directories' 'users' 'expand'
 zstyle ':completion:*' squeeze-slashes true
 
-## on processes completion complete all user processes
+# on processes completion complete all user processes
 zstyle ':completion:*:processes' command 'ps -au$USER'
 
-## add colors to processes for kill completion
+# add colors to processes for kill completion
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+# zstyle ':completion:*:history-words' remove-all-dups yes
+
+zstyle ":completion:*" show-completer true
 
 if [[ -z $ENABLE_AUTOFU ]]; then
     if whence auto-fu-init &> /dev/null; then
