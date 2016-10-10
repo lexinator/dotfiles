@@ -67,6 +67,14 @@ typeset -U path manpath
 export EDITOR=vi
 export LESS="-x3iX"
 export PAGER=less
+
+if [[ -x ~/pygments/bin/pygmentize ]]; then
+    export LESSOPEN="| ~/pygments/bin/pygmentize -f terminal256 -O style=solarizeddark -g %s"
+    export LESS="${LESS}R"
+elif [[ -n $commands[src-hilite-lesspipe.sh] ]]; then
+    export LESSOPEN="| $commands[src-hilite-lesspipe.sh] %s"
+    export LESS="${LESS}R"
+fi
 #
 export RSYNC_RSH=ssh
 export VAGRANT_VMWARE_CLONE_DIRECTORY=~/tmp/vagrant
