@@ -337,7 +337,7 @@ if [[ $BINDKEYMODE == "vi" ]]; then
     if declare -f history-substring-search-up 1>/dev/null; then
         # up arrow
         bindkey "$terminfo[kcuu1]" history-substring-search-up
-        bindkey '^[[A' history-substring-search-up
+        bindkey "$terminfo[cuu1]" history-substring-search-up
         # down arrow
         bindkey "$terminfo[kcud1]" history-substring-search-down
         bindkey '^[[B' history-substring-search-down
