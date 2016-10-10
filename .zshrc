@@ -311,8 +311,8 @@ case $USERNAME in
 
         umask 022
         HISTFILE=~/.zsh_history
-        HISTSIZE=200000
-        SAVEHIST=200000
+        HISTSIZE=900000000
+        SAVEHIST=$HISTSIZE
 
         if [[ -d ~/bin/$OS ]]; then
             PATH=~/bin/$OS:$PATH
@@ -327,7 +327,7 @@ case $USERNAME in
         fi
 
         umask 022
-        HISTSIZE=300
+        HISTSIZE=999999
         SAVEHIST=0
     ;;
 esac
