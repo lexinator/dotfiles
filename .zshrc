@@ -61,10 +61,14 @@ case $OS in
             psvar="${psvar}-$(grep CODENAME /etc/lsb-release | \
                               awk -F= '{print $2}')"
         fi
-        #redhat
+        #redhat/centos
         if [[ -f /etc/redhat-release ]]; then
             export SYSSCREENRC=/dev/null
-            psvar="${psvar}-$(awk '{print "rh-"$7$8}' /etc/redhat-release)"
+            if grep -q CentOS /etc/redhat-release; then
+                psvar="${psvar}-$(awk '{print "cent-"$3}' /etc/redhat-release)"
+            else
+                psvar="${psvar}-$(awk '{print "rh-"$7$8}' /etc/redhat-release)"
+            fi
         else
             if whence lessfile &> /dev/null; then
                 eval "$(lessfile)"
