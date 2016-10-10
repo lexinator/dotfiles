@@ -15,8 +15,8 @@ function vertical_resize()
   local screen = win:screen()
   local max = screen:frame()
 
-  -- store current size
-  if (frame.h >= max.h - 10 or frame.h <= max.h) and frame.y == max.y then
+  if (frame.h >= max.h - 10 or frame.h >= max.h) and frame.y == max.y then
+      -- window is at max, if previous state exists revert
       local prev_state = save_window_state[id]
       if prev_state then
         frame.x = prev_state.x
@@ -63,8 +63,8 @@ function horizontal_resize()
   local screen = win:screen()
   local max = screen:frame()
 
-  -- store current size
-  if (frame.w >= max.w - 10 or frame.w <= max.w) and frame.x == max.x then
+  if (frame.w >= max.w - 10 or frame.w >= max.w) and frame.x == max.x then
+      -- window is at max, if previous state exists revert
       local prev_state = save_window_state[id]
       if prev_state then
         frame.x = prev_state.x
@@ -238,6 +238,7 @@ local internal_display = {
     {"Safari",        nil,        display_laptop, hs.layout.left70,         nil, nil},
     {"Mail",          nil,        display_laptop, {x=0, y=0, w=0.75, h=0.9}, nil, nil},
     {"IntelliJ IDEA", nil,        display_laptop, {x=0, y=0, w=0.9, h=1},  nil, nil},
+    {"IntelliJ IDEA-EAP", nil,        display_laptop, {x=0, y=0, w=0.9, h=1},  nil, nil},
 
     {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3},  nil, nil},
     {"Adium",         "Contacts", display_laptop, {x=0, y=0, w=0.1, h=1},   nil, nil},
@@ -248,6 +249,7 @@ local dual_display = {
     {"Safari",        nil,        display_monitor, hs.layout.left70,        nil, nil},
     {"Mail",          nil,        display_monitor, hs.layout.left70,        nil, nil},
     {"IntelliJ IDEA", nil,        display_monitor, hs.layout.left75,        nil, nil},
+    {"IntelliJ IDEA-EAP", nil,        display_monitor, hs.layout.left75,        nil, nil},
 
     {"Messages",      nil,        display_monitor, {x=0, y=0, w=0.3, h=.3}, nil, nil},
     {"Adium",         "Contacts", display_monitor, {x=0, y=0, w=0.1, h=1},  nil, nil},
@@ -375,6 +377,7 @@ usbWatcher:start()
 
 hs.hotkey.bind(cmd_ctrl, "f5", 'Vertical Resize', vertical_resize)
 hs.hotkey.bind(cmd_ctrl, "f6", 'Horizontial Resize', horizontal_resize)
+hs.hotkey.bind(cmd_ctrl, "l", 'Lockscreen', hs.caffeinate.systemSleep)
 hs.hotkey.bind(cmd_ctrl, 'j', 'Console', hs.toggleConsole)
 hs.hotkey.bind(cmd_ctrl, 'a', 'Audio Toggle', toggle_audio_output)
 hs.hotkey.bind(cmd_ctrl, 'c', 'Connect VPN', vpn_connect)
