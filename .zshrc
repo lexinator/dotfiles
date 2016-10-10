@@ -539,8 +539,22 @@ zstyle ':completion:*' use-cache yes
 zstyle ':completion::complete:*' use-cache yes
 zstyle ':completion::complete:*' cache-path ~/.zcompcache/$HOST
 
-## add colors to completions
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# Speedup path completion
+zstyle ':completion:*' accept-exact '*(N)'
+
+# add colors to completions
+if [[ -z $LS_COLORS ]]; then
+  if whence dircolors &> /dev/null; then
+    eval $(dircolors -b)
+  elif whence gdircolors &> /dev/null; then
+    eval $(gdircolors -b)
+  else
+    echo 'no ls colors found'
+  fi
+fi
+zstyle ':completion:*:default' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' list-colors ''
+
 zstyle ':completion:*:*:cd:*' tag-order local-directories directory-stack \
                               path-directories
 zstyle ':completion:*:-tilde-:*' group-order 'named-directories' \
