@@ -578,10 +578,23 @@ if [[ -z $ENABLE_AUTOFU ]]; then
         }
         zle -N zle-keymap-select auto-fu-zle-keymap-select
         zle -N zle-line-init
-        zstyle ':completion:*' completer _oldlist _complete _list _expand _ignored _match _prefix
+        zstyle ':completion:*' completer _oldlist _complete _list _expand \
+                               _ignored _match _prefix
     fi
 else
-    zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
+    autoload -U is-at-least
+    _glob_expand() {
+        reply=( $~1* )
+    }
+    zstyle :completion::user-expand:: user-expand _glob_expand
+    if is-at-least 5.3; then
+        zstyle :completion::user-expand::: tag-order \
+                                           'expansions all-expansions'
+    else
+        zstyle :completion::user-expand:: tag-order expansions all-expansions
+    fi
+    zstyle ':completion:*' completer _expand _complete _match _ignored \
+                           _correct _approximate _prefix _user_expand
 fi
 
 
