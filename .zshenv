@@ -45,7 +45,7 @@ case $HOST in
               /opt/X11/bin /usr/X11R6/bin $path)
         manpath=(/usr/man /usr/share/man /usr/sfw/man /opt/sfw/man
                  /usr/dt/man /opt/sfw/mysql/man /usr/local/man
-                 /opt/local/man $manpath)
+                 /opt/local/man /usr/local/share/man $manpath)
         export PATH
         export MANPATH
         ;;
