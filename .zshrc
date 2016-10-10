@@ -450,6 +450,13 @@ $(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
     fi
 }
 
+# use 'cdr' for this
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
+zstyle ':chpwd:*' recent-dirs-max 20
+zstyle ':chpwd:*' recent-dirs-default true
+zstyle ':completion:*' recent-dirs-insert fallback
+
 # cd to a file (cd path/path/file)
 # go to the directory containing the file, no questions asked
 # added support for cd foo bar to change from /foo/subdir to /bar/subdir
@@ -469,16 +476,24 @@ function cd {
     fi
 }
 
-expand-or-complete-with-dots() {
-  echo -n "\e[31m...\e[0m"
-  zle expand-or-complete
-  zle redisplay
-}
-zle -N expand-or-complete-with-dots
-bindkey "^I" expand-or-complete-with-dots
+# ctrl-j, then the letter you are looking to go to...
+if [[ -d ~/src/zsh-jump-target ]]; then
+    fpath=(~/src/zsh-jump-target/functions $fpath)
+    autoload -Uz jump-target
+    zle -N jump-target
+    bindkey "^J" jump-target
+    bindkey -M vicmd "^J" jump-target
+    ZSH_JUMP_TARGET_CHOICES="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    ZSH_JUMP_TARGET_STYLE="fg=black,underline,bg=red"
+fi
 
-## General completion technique - complete as much u can ..
-zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
+if [[ -d ~/src/zsh-autosuggestions ]]; then
+    . ~/src/zsh-autosuggestions/zsh-autosuggestions.zsh
+    bindkey '^ ' autosuggest-accept
+
+    ZSH_AUTOSUGGEST_CLEAR_WIDGETS=("${(@)ZSH_AUTOSUGGEST_CLEAR_WIDGETS:#(up|down)-line-or-history}")
+    ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(history-substring-search-up history-substring-search-down)
+fi
 
 # allow one error for every three characters typed in approximate completer
 zstyle -e ':completion:*:approximate:*' max-errors 'reply=( $(( ($#PREFIX+$#SUFFIX)/3 )) numeric )'
@@ -554,6 +569,14 @@ if [[ -z $ENABLE_AUTOFU ]]; then
 else
     zstyle ':completion:*' completer _complete _list _oldlist _expand _ignored _match _correct _approximate _prefix
 fi
+
+
+autoload -U url-quote-magic
+zle -N self-insert url-quote-magic
+
+autoload -Uz bracketed-paste-magic
+zle -N bracketed-paste bracketed-paste-magic
+zstyle :bracketed-paste-magic paste-init backward-extend-paste
 
 if [[ $PROFILE_STARTUP == true ]]; then
     unsetopt xtrace
