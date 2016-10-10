@@ -261,9 +261,9 @@ case $USERNAME in
                         extra='--stat'
                         ;;
                     rebase)
-                        # can't add when using --abort
+                        # can't add --verbose when using some commands
                         case $@[1] in
-                            --abort) ;;
+                            --abort|--continue|--skip) ;;
                             *) extra='--verbose' ;;
                         esac
                         ;;
@@ -279,9 +279,6 @@ case $USERNAME in
 
                         #remove --rebase if it exists
                         argv[$argv[(i)--rebase]]=()
-                        ;;
-                    cherry-pick)
-                        extra='--autostash'
                         ;;
                     *)
                         extra=""
