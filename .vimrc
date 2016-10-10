@@ -39,7 +39,7 @@ let g:syntastic_check_on_open = 1
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 "
 "set clipboard=unnamed
-"
+" http://www.drbunsen.org/the-text-triumvirate/
 " Yank text to the OS X clipboard
 " noremap <leader>y "*y
 " noremap <leader>yy "*Y
