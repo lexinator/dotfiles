@@ -58,7 +58,7 @@ case $OS in
             alias ls='ls -F --color=auto'
         fi
         export GREP_COLOR='1;32'
-        export GREP_OPTIONS='--color=auto'
+        alias grep='grep --color=auto'
 
         #debian/ubuntu
         if [[ -f /etc/lsb-release ]]; then
@@ -94,7 +94,7 @@ case $OS in
         #manpage for definition
         export LSCOLORS=ExGxDxdxCxegedabagacad
         export GREP_COLOR='1;32'
-        export GREP_OPTIONS='--color=auto'
+        alias grep='grep --color=auto'
         alias ls='ls -G'
         alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
         export BROWSER='open'
