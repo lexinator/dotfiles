@@ -371,6 +371,18 @@ if [[ $BINDKEYMODE == "vi" ]]; then
     bindkey "^Xa" accept-and-hold
     bindkey '^W' backward-kill-word
     bindkey ' ' magic-space
+
+    function backward-kill-partial-word {
+        local WORDCHARS="${WORDCHARS//[\/.]/}"
+        zle backward-kill-word "$@"
+    }
+    zle -N backward-kill-partial-word
+    bindkey "^Xw" backward-kill-partial-word
+    bindkey "^X^w" backward-kill-partial-word
+
+    # ctrl arrows
+    bindkey "^[[1;5D" backward-word
+    bindkey "^[[1;5C" forward-word
 fi
 setprompt
 
@@ -466,6 +478,11 @@ ${PR_LEFTARROW}"
     fi
 }
 
+# zman "f "  http://chneukirchen.org/blog/category/zsh.html
+function zman {
+    PAGER="less -g -s '+/^       "$1"'" man zshall
+}
+
 # use 'cdr' for this
 autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
 add-zsh-hook chpwd chpwd_recent_dirs
@@ -492,23 +509,19 @@ function cd {
     fi
 }
 
-# ctrl-j, then the letter you are looking to go to...
-if [[ -d ~/src/zsh-jump-target ]]; then
-    fpath=(~/src/zsh-jump-target/functions $fpath)
-    autoload -Uz jump-target
-    zle -N jump-target
-    bindkey "^J" jump-target
-    bindkey -M vicmd "^J" jump-target
-    ZSH_JUMP_TARGET_CHOICES="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    ZSH_JUMP_TARGET_STYLE="fg=black,underline,bg=red"
-fi
-
-if [[ -d ~/src/zsh-autosuggestions ]]; then
-    . ~/src/zsh-autosuggestions/zsh-autosuggestions.zsh
+if zle -l | grep -q autosuggest-accept 1>/dev/null; then
     bindkey '^ ' autosuggest-accept
 
     ZSH_AUTOSUGGEST_CLEAR_WIDGETS=("${(@)ZSH_AUTOSUGGEST_CLEAR_WIDGETS:#(up|down)-line-or-history}")
     ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(history-substring-search-up history-substring-search-down)
+fi
+
+# ctrl-j, then the letter you are looking to go to...
+if declare -f jump-target 1> /dev/null; then
+      bindkey "^J" jump-target
+      bindkey -M vicmd "^J" jump-target
+      ZSH_JUMP_TARGET_CHOICES="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      ZSH_JUMP_TARGET_STYLE="fg=black,underline,bg=red"
 fi
 
 # allow one error for every three characters typed in approximate completer
