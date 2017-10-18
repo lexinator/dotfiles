@@ -6,6 +6,7 @@ local configFileWatcher = nil
 
 local cmd_ctrl = {"cmd", "ctrl"}
 local cmd_alt_ctrl = {"cmd", "alt", "ctrl"}
+local hyper = {"cmd", "alt", "ctrl", "shift"}
 
 function vertical_resize()
   local win = hs.window.focusedWindow()
@@ -375,35 +376,62 @@ end
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
 
-hs.hotkey.bind(cmd_ctrl, "f5", 'Vertical Resize', vertical_resize)
-hs.hotkey.bind(cmd_ctrl, "f6", 'Horizontial Resize', horizontal_resize)
-hs.hotkey.bind(cmd_ctrl, "l", 'Lockscreen', hs.caffeinate.systemSleep)
-hs.hotkey.bind(cmd_ctrl, 'j', 'Console', hs.toggleConsole)
-hs.hotkey.bind(cmd_ctrl, 'a', 'Audio Toggle', toggle_audio_output)
-hs.hotkey.bind(cmd_ctrl, 'c', 'Connect VPN', vpn_connect)
-hs.hotkey.bind(cmd_ctrl, 'd', 'Disconnect VPN', vpn_disconnect)
-hs.hotkey.bind(cmd_ctrl, 'u', 'Paste Current Safari URL', function()
+hs.hotkey.bind(hyper, "f5", 'Vertical Resize', vertical_resize)
+hs.hotkey.bind(hyper, "f6", 'Horizontial Resize', horizontal_resize)
+hs.hotkey.bind(hyper, "l", 'Lockscreen', hs.caffeinate.startScreensaver)
+hs.hotkey.bind(hyper, 'j', 'Console', hs.toggleConsole)
+hs.hotkey.bind(hyper, 'a', 'Audio Toggle', toggle_audio_output)
+hs.hotkey.bind(hyper, 'c', 'Connect VPN', vpn_connect)
+hs.hotkey.bind(hyper, 'd', 'Disconnect VPN', vpn_disconnect)
+
+hs.hotkey.bind(hyper, 't', 'iterm', function()
+    hs.application.launchOrFocus("iTerm")
+end)
+hs.hotkey.bind(hyper, 's', 'safari', function()
+    hs.application.launchOrFocus("Safari")
+end)
+hs.hotkey.bind(hyper, 'i', 'IntelliJ IDEA', function()
+    -- name of application on disk (i've manually renamed)
+    hs.application.launchOrFocus("IntelliJ IDEA 2017.3 EAP")
+end)
+hs.hotkey.bind(hyper, 'g', 'chrome', function()
+    hs.application.launchOrFocus("Google Chrome")
+end)
+
+hs.hotkey.bind(cmd_ctrl, '1', 'totp', totp)
+hs.hotkey.bind(cmd_ctrl, '2', 'totp uat', totp_uat)
+
+hs.hotkey.bind(hyper, 'u', 'Paste Current Safari URL', function()
     hs.timer.doAfter(1, typeCurrentSafariURL)
 end)
-hs.hotkey.bind(cmd_ctrl, "V", 'Paste (simulated keypresses)', function()
+hs.hotkey.bind(hyper, "V", 'Paste (simulated keypresses)', function()
     hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 end)
 hs.hotkey.showHotkeys(cmd_ctrl, 'h')
 
 hs.hotkey.bind({"ctrl"}, ".", 'Window Hints', hs.hints.windowHints)
-hs.hotkey.bind(cmd_alt_ctrl, '1', 'Single Monitor Layout', function()
+hs.hotkey.bind(hyper, '1', 'Single Monitor Layout', function()
     hs.layout.apply(internal_display)
 end)
-hs.hotkey.bind(cmd_alt_ctrl, '2', 'Dual Monitor Layout', function()
+hs.hotkey.bind(hyper, '2', 'Dual Monitor Layout', function()
     hs.layout.apply(dual_display)
 end)
-hs.hotkey.bind(cmd_alt_ctrl, '0', 'Show watchers', function()
+hs.hotkey.bind(hyper, '0', 'Show watchers', function()
     print(configFileWatcher)
     print(screenWatcher)
     print(usbWatcher)
 end)
 
+hs.hotkey.bind(cmd_ctrl, '[', function()
+    hs.window.focusedWindow():moveToUnit(hs.layout.left50)
+end)
+hs.hotkey.bind(cmd_ctrl, ']', function()
+    hs.window.focusedWindow():moveToUnit(hs.layout.right50)
+end)
+
 -- TODO: take what's in the paste buffer and create a gist
+
+hs.loadSpoon("ControlEscape"):start()
 
 -- auto reload when file changes
 function reload_config(files)
