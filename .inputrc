@@ -9,3 +9,5 @@ set show-all-if-unmodified on
 
 # underscores and hyphens are treated equally when completing
 set completion-map-case on
+
+set enable-bracketed-paste on
