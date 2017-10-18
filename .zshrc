@@ -317,6 +317,9 @@ case $USERNAME in
         HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND="bg=blue,fg=white,bold"
         export HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND
 
+        # avoid slow pastes
+        ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=10
+
         FIGNORE='.pyc:.o'
 
         umask 022
