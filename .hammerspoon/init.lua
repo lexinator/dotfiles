@@ -252,24 +252,28 @@ dev:bind({}, "B", 'Show prev Window underneath Mouse',
 -- Define window layouts
 -- {"App name", "Window name", "Display Name", "unitrect", "framerect", "fullframerect"},
 local internal_display = {
-    {"Safari",        nil,        display_laptop, hs.layout.left70,         nil, nil},
+    {"Safari",        nil,        display_laptop, hs.layout.left80, nil, nil},
+    {"Google Chrome", nil,        display_laptop, hs.layout.left75, nil, nil},
     {"Mail",          nil,        display_laptop, {x=0, y=0, w=0.75, h=0.9}, nil, nil},
-    {"IntelliJ IDEA", nil,        display_laptop, {x=0, y=0, w=0.9, h=1},  nil, nil},
-    {"IntelliJ IDEA-EAP", nil,        display_laptop, {x=0, y=0, w=0.9, h=1},  nil, nil},
+    {"IntelliJ IDEA", nil,        display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
+    {"IntelliJ IDEA-EAP", nil,    display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
 
-    {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3},  nil, nil},
-    {"Adium",         "Contacts", display_laptop, {x=0, y=0, w=0.1, h=1},   nil, nil},
+    {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3}, nil, nil},
+    {"Adium",         "Contacts", display_laptop, {x=0, y=0, w=0.1, h=1}, nil, nil},
     {"iTunes",        "iTunes",   display_laptop, hs.layout.right75, nil},
+    {"HipChat",       "HipChat",  display_laptop, {x=.62, y=0, w=.32, h=.3}, nil, nil},
 }
 
 local dual_display = {
     {"Safari",        nil,        display_monitor, hs.layout.left70,        nil, nil},
+    {"Google Chrome", nil,        display_monitor, hs.layout.left75,        nil, nil},
     {"Mail",          nil,        display_monitor, hs.layout.left70,        nil, nil},
     {"IntelliJ IDEA", nil,        display_monitor, hs.layout.left75,        nil, nil},
-    {"IntelliJ IDEA-EAP", nil,        display_monitor, hs.layout.left75,        nil, nil},
+    {"IntelliJ IDEA-EAP", nil,    display_monitor, hs.layout.left75,        nil, nil},
 
     {"Messages",      nil,        display_monitor, {x=0, y=0, w=0.3, h=.3}, nil, nil},
     {"Adium",         "Contacts", display_monitor, {x=0, y=0, w=0.1, h=1},  nil, nil},
+    {"HipChat",       "HipChat",  display_monitor, {x=.68, y=0, w=.32, h=.45},  nil, nil},
 
     {"iTunes",        "iTunes",   display_laptop,  hs.layout.left75,        nil, nil},
 }
