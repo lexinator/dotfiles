@@ -41,7 +41,7 @@ alias tcpcount='netstat -an | egrep -v "127.0.0|10.16|^udp|^unix|LISTEN|^Proto|A
 alias pss='ps -e -o pid,user,rss,vsz,stime,time,args'
 alias http='http --style solarized'
 
-if whence vim &> /dev/null; then
+if (( $+commands[vim] )); then
     alias vi=vim
 fi
 
@@ -74,14 +74,14 @@ case $OS in
                 psvar="${psvar}-$(awk '{print "rh-"$7$8}' /etc/redhat-release)"
             fi
         else
-            if whence lessfile &> /dev/null; then
+            if (( $+commands[lessfile] )); then
                 eval "$(lessfile)"
             fi
         fi
         ;;
 
     SunOS)
-        if whence gtar &> /dev/null; then
+        if (( $+commands[gtar] )); then
             alias tar=gtar
         fi
         alias ping='ping -s'
@@ -243,7 +243,7 @@ case $USERNAME in
         bindkey -v
 
         setopt complete_aliases
-        if whence git &> /dev/null; then
+        if (( $+commands[git] )); then
             GIT_VERSION=$(git --version | awk '{print $2}')
 
             function git_lex {
@@ -544,9 +544,9 @@ zstyle ':completion:*' accept-exact '*(N)'
 
 # add colors to completions
 if [[ -z $LS_COLORS ]]; then
-  if whence dircolors &> /dev/null; then
+  if (( $+commands[dircolors] )); then
     eval $(dircolors -b)
-  elif whence gdircolors &> /dev/null; then
+  elif (( $+commands[gdircolors] )); then
     eval $(gdircolors -b)
   else
     echo 'no ls colors found'
@@ -571,8 +571,10 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
 zstyle ":completion:*" show-completer true
 
+zstyle ":history-search-multi-word" page-size "10"
+
 if [[ -z $ENABLE_AUTOFU ]]; then
-    if whence auto-fu-init &> /dev/null; then
+    if (( $+commands[auto-fu-init] )); then
         zle-line-init () {
             auto-fu-init
         }
