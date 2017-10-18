@@ -131,7 +131,7 @@ function setprompt {
             PR_WHITE='%F{255}'
             PR_DEFAULT='%f'
             PR_BLUE='%F{024}'
-            PR_DARKRED='%F{052}'
+            PR_DARKRED='%F{001}'
             PR_RED='%F{009}'
             PR_GREEN='%F{048}'
             PR_YELLOW='%F{011}'
@@ -221,19 +221,29 @@ $PR_DEFAULT'
     RPS2='$PR_GREEN<%^\
 $PR_DEFAULT'
 
-    ZSH_THEME_GIT_PROMPT_PREFIX="${PR_RIGHTARROW}${PR_WHITE}["
-    ZSH_THEME_GIT_PROMPT_SUFFIX="${PR_WHITE}]${PR_LEFTARROW}"
+    ZSH_THEME_GIT_PROMPT_PREFIX="${PR_WHITE}"
+    ZSH_THEME_GIT_PROMPT_SUFFIX=" ${PR_WHITE}"
 
-    ZSH_THEME_GIT_PROMPT_DIRTY="${PR_DARKRED}⚡dirty"
+    ZSH_THEME_GIT_PROMPT_DIRTY=" ${PR_DARKRED}✘dirty"
     ZSH_THEME_GIT_PROMPT_AHEAD="${PR_YELLOW}!ahead"
     ZSH_THEME_GIT_PROMPT_CLEAN="${PR_GREEN}✓"
 
-    ZSH_THEME_GIT_PROMPT_ADDED="$PR_GREEN✚ add "
-    ZSH_THEME_GIT_PROMPT_MODIFIED="$PR_BLUE✹ mod "
-    ZSH_THEME_GIT_PROMPT_DELETED="$PR_RED✖ del "
+    ZSH_THEME_GIT_PROMPT_ADDED="$PR_GREEN✚ "
+    ZSH_THEME_GIT_PROMPT_MODIFIED="$PR_BLUE✹ "
+    ZSH_THEME_GIT_PROMPT_DELETED="$PR_RED✖ "
     ZSH_THEME_GIT_PROMPT_RENAMED="%{$fg[magenta]%}➜ rename "
     ZSH_THEME_GIT_PROMPT_UNMERGED="$PR_YELLOW═ unmerged "
-    ZSH_THEME_GIT_PROMPT_UNTRACKED="$PR_CYAN✭ untracked "
+    ZSH_THEME_GIT_PROMPT_UNTRACKED="$PR_CYAN…untracked "
+
+    ZSH_THEME_GIT_PROMPT_EQUAL_REMOTE="="
+    ZSH_THEME_GIT_PROMPT_AHEAD_REMOTE="↑"
+    ZSH_THEME_GIT_PROMPT_AHEAD_REMOTE_COLOR="$PR_GREEN"
+    ZSH_THEME_GIT_PROMPT_BEHIND_REMOTE="↓"
+    ZSH_THEME_GIT_PROMPT_BEHIND_REMOTE_COLOR="$PR_RED"
+    ZSH_THEME_GIT_PROMPT_DIVERGED_REMOTE="diverged "
+
+    ZSH_THEME_GIT_PROMPT_REMOTE_STATUS_DETAILED=true
+    DISABLE_UNTRACKED_FILES_DIRTY=true
 }
 
 #user specific stuff
@@ -426,8 +436,11 @@ function title {
 
 function precmd {
     title zsh "$PWD"
-    GITSTATUS="$(typeset -f git_prompt_info 1>/dev/null && git_prompt_info)\
-$(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)"
+    GITSTATUS="${PR_RIGHTARROW}\
+$(typeset -f git_prompt_info 1>/dev/null && git_prompt_info)\
+$(typeset -f git_prompt_status 1>/dev/null && git_prompt_status)\
+$(typeset -f git_remote_status 1>/dev/null && git_remote_status)\
+${PR_LEFTARROW}"
 
     local TERMWIDTH
     (( TERMWIDTH = ${COLUMNS} - 1 ))
