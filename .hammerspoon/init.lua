@@ -25,7 +25,11 @@ function vertical_resize()
         frame.h = prev_state.h
         frame.w = prev_state.w
 
-        win:setFrame(frame)
+        win:setFrame(frame, 0)
+      else
+        -- if no previous state, shrink it by 50%
+        frame.h = frame.h / 2
+        win:setFrame(frame, 0)
       end
   else
       if save_window_state[id] then
@@ -52,7 +56,7 @@ function vertical_resize()
       frame.y = max.y
       frame.h = max.h
 
-      win:setFrame(frame)
+      win:setFrame(frame, 0)
   end
 end
 
@@ -73,7 +77,11 @@ function horizontal_resize()
         frame.h = prev_state.h
         frame.w = prev_state.w
 
-        win:setFrame(frame)
+        win:setFrame(frame, 0)
+      else
+        -- if no previous state, shrink it by 50%
+        frame.w = frame.w / 2
+        win:setFrame(frame, 0)
       end
   else
       if save_window_state[id] then
@@ -110,9 +118,27 @@ function horizontal_resize()
       frame.x = max.x
       frame.w = max.w
 
-      win:setFrame(frame)
+      win:setFrame(frame, 0)
   end
 end
+
+-- move window left
+hs.hotkey.bind(hyper, "f1", function()
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
+
+  f.x = f.x - 10
+  win:setFrame(f, 0)
+end)
+
+-- move window right
+hs.hotkey.bind(hyper, "f2", function()
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
+
+  f.x = f.x + 10
+  win:setFrame(f, 0)
+end)
 
 function vpn_connect()
     hs.notify.new({
@@ -171,8 +197,8 @@ local workHeadphoneDevice = "Turtle Beach USB Audio"
 local laptopSpeakerDevice = "Built-in Output"
 
 -- Defines for window grid
-hs.grid.GRIDWIDTH = 4
-hs.grid.GRIDHEIGHT = 4
+hs.grid.GRIDWIDTH = 6
+hs.grid.GRIDHEIGHT = 6
 hs.grid.MARGINX = 0
 hs.grid.MARGINY = 0
 
@@ -442,16 +468,28 @@ hs.hotkey.bind(hyper, '0', 'Show watchers', function()
     print(usbWatcher)
 end)
 
-hs.hotkey.bind(cmd_ctrl, '[', function()
-    hs.window.focusedWindow():moveToUnit(hs.layout.left50)
-end)
-hs.hotkey.bind(cmd_ctrl, ']', function()
-    hs.window.focusedWindow():moveToUnit(hs.layout.right50)
-end)
-
--- TODO: take what's in the paste buffer and create a gist
-
+-- make control key at an escape when pressed without addition keys
 hs.loadSpoon("ControlEscape"):start()
+
+-- resize windows
+-- if f4 and iterm, then shrink to exactly 80 columns
+hs.hotkey.bind(hyper, 'f4', 'narrow window in focus', function()
+    local win = hs.window.focusedWindow()
+    local app = win:application():title()
+    local frame = win:frame()
+
+    if (app == "iTerm2") then
+        -- set to 80 column size
+        frame.w = "570"
+        win:setFrame(frame, 0)
+    else
+        hs.grid.resizeWindowThinner()
+    end
+end)
+
+hs.hotkey.bind(hyper, 'f7', 'widen window in focus', function()
+    hs.grid.resizeWindowWider()
+end)
 
 -- auto reload when file changes
 function reload_config(files)
