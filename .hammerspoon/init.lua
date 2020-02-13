@@ -190,11 +190,11 @@ end
 
 -- Define monitor names for layout purposes
 local display_laptop = "Color LCD"
-local display_monitor = "Thunderbolt Display"
+local display_monitor = "LG UltraFine"
 
 -- Define audio device names for headphone/speaker switching
 local workHeadphoneDevice = "Turtle Beach USB Audio"
-local laptopSpeakerDevice = "Built-in Output"
+local laptopSpeakerDevice = "MacBook Pro Speakers"
 
 -- Defines for window grid
 hs.grid.GRIDWIDTH = 6
@@ -285,23 +285,21 @@ local internal_display = {
     {"IntelliJ IDEA-EAP", nil,    display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
 
     {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3}, nil, nil},
-    {"Adium",         "Contacts", display_laptop, {x=0, y=0, w=0.1, h=1}, nil, nil},
-    {"iTunes",        "iTunes",   display_laptop, hs.layout.right75, nil},
-    {"HipChat",       "HipChat",  display_laptop, {x=.62, y=0, w=.32, h=.3}, nil, nil},
+    {"Music",         nil,        display_laptop, hs.layout.right75, nil},
+    {"Slack",         nil,        display_laptop, {x=.60, y=0, w=.40, h=1}, nil, nil},
 }
 
 local dual_display = {
     {"Safari",        nil,        display_monitor, hs.layout.left70,        nil, nil},
     {"Google Chrome", nil,        display_monitor, hs.layout.left75,        nil, nil},
     {"Mail",          nil,        display_monitor, hs.layout.left70,        nil, nil},
-    {"IntelliJ IDEA", nil,        display_monitor, hs.layout.left75,        nil, nil},
-    {"IntelliJ IDEA-EAP", nil,    display_monitor, hs.layout.left75,        nil, nil},
+    {"IntelliJ IDEA", nil,        display_monitor, hs.layout.left80,        nil, nil},
+    {"IntelliJ IDEA-EAP", nil,    display_monitor, hs.layout.left80,        nil, nil},
 
     {"Messages",      nil,        display_monitor, {x=0, y=0, w=0.3, h=.3}, nil, nil},
-    {"Adium",         "Contacts", display_monitor, {x=0, y=0, w=0.1, h=1},  nil, nil},
-    {"HipChat",       "HipChat",  display_monitor, {x=.68, y=0, w=.32, h=.45},  nil, nil},
+    {"Slack",         nil,        display_monitor, {x=.60, y=0, w=.40, h=1},  nil, nil},
 
-    {"iTunes",        "iTunes",   display_laptop,  hs.layout.left75,        nil, nil},
+    {"Music",        nil,         display_laptop,  hs.layout.left75,        nil, nil},
 }
 
 -- Defines for screen watcher
@@ -370,6 +368,7 @@ end
 function usbDeviceCallback(data)
     print("usbDeviceCallback: "..hs.inspect(data))
 
+    -- apple monitor
     if (data["productName"] == "Apple Thunderbolt Display") then
         event = data["eventType"]
 
@@ -390,10 +389,37 @@ function usbDeviceCallback(data)
                 informativeText="Laptop monitor: Enabling wifi",
             }):send()
 
-            -- Turn on wifi on your macbook from the Mac OSX terminal command line:
+            -- Turn on wifi
             os.execute("networksetup -setairportpower en0 on")
         end
     end
+
+    -- lg monitor
+    if (data["productName"] == "LG UltraFine Display Camera") then
+        event = data["eventType"]
+
+        if (event == "added") then
+            -- at a desk with two monitors
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Found LG Display: Disabling wifi",
+            }):send()
+            os.execute("networksetup -setairportpower en0 off")
+
+            -- give time to let network settle before trying to disconnect
+            hs.timer.doAfter(5, vpn_disconnect)
+        elseif (event == "removed") then
+            -- only using laptop monitor
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="Laptop monitor: Enabling wifi",
+            }):send()
+
+            -- Turn on wifi
+            os.execute("networksetup -setairportpower en0 on")
+        end
+    end
+
 
     if (data["productName"] == "Turtle Beach USB Audio") then
         event = data["eventType"]
@@ -430,18 +456,26 @@ hs.hotkey.bind(hyper, 'a', 'Audio Toggle', toggle_audio_output)
 hs.hotkey.bind(hyper, 'c', 'Connect VPN', vpn_connect)
 hs.hotkey.bind(hyper, 'd', 'Disconnect VPN', vpn_disconnect)
 
-hs.hotkey.bind(hyper, 't', 'iterm', function()
+hs.hotkey.bind(hyper, 'i', 'iterm', function()
     hs.application.launchOrFocus("iTerm")
 end)
 hs.hotkey.bind(hyper, 's', 'safari', function()
     hs.application.launchOrFocus("Safari")
 end)
-hs.hotkey.bind(hyper, 'i', 'IntelliJ IDEA', function()
-    -- name of application on disk (i've manually renamed)
-    hs.application.launchOrFocus("IntelliJ IDEA 2017.3 EAP")
+hs.hotkey.bind(hyper, 'j', 'IntelliJ IDEA', function()
+    hs.application.launchOrFocus("IntelliJ IDEA 2019.3 EAP")
 end)
 hs.hotkey.bind(hyper, 'g', 'chrome', function()
     hs.application.launchOrFocus("Google Chrome")
+end)
+hs.hotkey.bind(hyper, 'k', 'slack', function()
+    hs.application.launchOrFocus("slack")
+end)
+hs.hotkey.bind(hyper, 'r', 'radar', function()
+    hs.application.launchOrFocus("radarx")
+end)
+hs.hotkey.bind(hyper, 'a', 'agile', function()
+    hs.application.launchOrFocus("agile")
 end)
 
 hs.hotkey.bind(cmd_ctrl, '1', 'totp', totp)
@@ -453,9 +487,9 @@ end)
 hs.hotkey.bind(hyper, "V", 'Paste (simulated keypresses)', function()
     hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 end)
-hs.hotkey.showHotkeys(cmd_ctrl, 'h')
+hs.hotkey.showHotkeys(hyper, 'h')
 
-hs.hotkey.bind({"ctrl"}, ".", 'Window Hints', hs.hints.windowHints)
+hs.hotkey.bind({"alt"}, "tab", 'Window Hints', hs.hints.windowHints)
 hs.hotkey.bind(hyper, '1', 'Single Monitor Layout', function()
     hs.layout.apply(internal_display)
 end)
