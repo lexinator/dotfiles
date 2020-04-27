@@ -451,8 +451,8 @@ usbWatcher:start()
 hs.hotkey.bind(hyper, "f5", 'Vertical Resize', vertical_resize)
 hs.hotkey.bind(hyper, "f6", 'Horizontial Resize', horizontal_resize)
 hs.hotkey.bind(hyper, "l", 'Lockscreen', hs.caffeinate.startScreensaver)
-hs.hotkey.bind(hyper, 'j', 'Console', hs.toggleConsole)
-hs.hotkey.bind(hyper, 'a', 'Audio Toggle', toggle_audio_output)
+hs.hotkey.bind(hyper, 'q', 'Console', hs.toggleConsole)
+hs.hotkey.bind(hyper, 'p', 'sPeaker Toggle', toggle_audio_output)
 hs.hotkey.bind(hyper, 'c', 'Connect VPN', vpn_connect)
 hs.hotkey.bind(hyper, 'd', 'Disconnect VPN', vpn_disconnect)
 
@@ -537,6 +537,57 @@ function reload_config(files)
         hs.reload()
     end
 end
+
+hs.loadSpoon("Seal")
+spoon.Seal:bindHotkeys({show={{"cmd"}, "space"}})
+spoon.Seal:loadPlugins(
+    {"apps", "useractions"}
+)
+spoon.Seal.plugins.useractions.actions = {
+    ["Hammerspoon docs webpage"] = {
+        url = "http://hammerspoon.org/docs/",
+        icon = hs.image.imageFromName(hs.image.systemImageNames.ApplicationIcon),
+    },
+    ["Tell me something"] = {
+        keyword = "tellme",
+        fn = function(str) hs.alert.show(str) end,
+    },
+    ["open"] = {
+        keyword = "open",
+        fn = function(str)
+          os.execute("open " .. str)
+        end
+    },
+}
+spoon.Seal:start()
+
+hs.loadSpoon("FnMate")
+
+hs.loadSpoon("KSheet")
+spoon.KSheet:bindHotkeys({toggle={cmd_ctrl, "/"}})
+
+-- local ctrlTab = hs.hotkey.new({"ctrl"}, "tab", nil, function()
+--   hs.eventtap.keyStroke({"alt"}, "w")
+-- end)
+-- chromeWatcher = hs.application.watcher.new(function(name, eventType, app)
+--   if eventType ~= hs.application.watcher.activated then return end
+--   if name == "Google Chrome" then
+--     ctrlTab:enable()
+--   else
+--     ctrlTab:disable()
+--   end
+-- end)
+-- chromeWatcher:start()
+
+-- menuHammer = hs.loadSpoon("MenuHammer")
+-- menuHammer:enter()
+
+-- pomodoro key binding
+require "pomodoro"
+hs.hotkey.bind(hyper, '-', "pomodoro close", function() pom_remove() end)
+hs.hotkey.bind(hyper, '[', "pomodoro start", function() pom_enable() end)
+hs.hotkey.bind(hyper, ']', "pomodoro pause", function() pom_disable() end)
+hs.hotkey.bind(hyper, '\\', "pomodoro reset counter", function() pom_reset_work() end)
 
 configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/",
                                        reload_config)
