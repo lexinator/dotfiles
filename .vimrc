@@ -1,5 +1,7 @@
 execute pathogen#infect()
 
+" https://vi.stackexchange.com/a/20203
+
 syntax on
 filetype plugin indent on
 set laststatus=2
@@ -20,10 +22,15 @@ iab teh the
 "helptags ~/.vim/doc
 let g:task_paper_date_format = "%Y-%m-%d %H:%M"
 "
-let g:solarized_termtrans=1
-let g:solarized_termcolors=256
-colorscheme solarized
+if has('nvim')
+  " use terminal background
+  let g:solarized_termtrans=0
+else
+  let g:solarized_termtrans=1
+endif
+set termguicolors
 set background=dark
+colorscheme solarized8
 set t_ti= t_te=
 let mapleader = "\<Space>"
 nnoremap <Leader>o :CtrlP<CR>
@@ -65,8 +72,15 @@ set runtimepath^=~/.vim/bundle/ctrlp.vim
 ":let g:ctrlp_switch_buffer = 0
 
 " settings for vim-oblique
-let g:oblique#incsearch_highlight_all = 1
+:let g:oblique#incsearch_highlight_all = 1
 
 " settings for vim-session
-let g:session_autosave = 'yes'
-let g:session_autoload = 'yes'
+:let g:session_autosave = 'yes'
+:let g:session_autoload = 'yes'
+:let g:session_default_to_last = 1
+:let g:session_autosave_periodic = 1
+
+:nmap <Leader>gl :echo gitlink#GitLink()<CR>
+
+" fzf stuff
+set rtp+=/usr/local/opt/fzf
