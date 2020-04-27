@@ -78,9 +78,14 @@ fi
 #
 export RSYNC_RSH=ssh
 export VAGRANT_VMWARE_CLONE_DIRECTORY=~/tmp/vagrant
-export SELFIE_UPDATE_NAG=1
 
 export GEM_HOME=~/tmp/local-gems
+
+export HOMEBREW_CASK_OPTS=--require-sha
+export HOMEBREW_NO_INSECURE_REDIRECT=1
+export HOMEBREW_NO_ANALYTICS=1
+
+export KO_DOCKER_REPO='host.docker.local:5000/ludeman'
 
 [[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
 

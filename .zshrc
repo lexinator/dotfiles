@@ -44,6 +44,9 @@ alias http='http --style solarized'
 if (( $+commands[vim] )); then
     alias vi=vim
 fi
+if (( $+commands[nvim] )); then
+    alias vi=nvim
+fi
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
@@ -124,7 +127,9 @@ function setprompt {
     PR_RIGHTARROW=">"
     PR_LEFTARROW=${altchar[<]:-<}
 
-    if [[ $TERM == *256color* || $TERM == *rxvt* ]]; then
+    if [[ $TERM == *256color* || \
+          $TERM == *rxvt* || \
+          $TERM == "eterm-color" ]]; then
         if is-at-least 4.3; then
             # use 256 colors
             PR_CYAN='%F{081}'
@@ -246,17 +251,65 @@ $PR_DEFAULT'
     DISABLE_UNTRACKED_FILES_DIRTY=true
 }
 
+# put functions before site-functions
+setopt null_glob
+#fpath=($fpath
+#       /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions
+#       /usr/local/share/zsh/functions
+#       /usr/local/share/zsh/site-functions
+#       /usr/local/share/zsh/*/functions
+#       ~/public/share/zsh/*/functions
+#       /usr/share/zsh/*/functions
+#)
+fpath=(/usr/local/share/zsh/functions
+    /usr/local/share/zsh/site-functions
+    $fpath)
+unsetopt null_glob
+
 #user specific stuff
 case $USERNAME in
     aludeman|lex|ludeman)
         export BINDKEYMODE="vi"
         bindkey -v
+        # use even more autocompletions
+        if [[ -d ~/src/zsh-completions/src ]]; then
+            fpath=(~/src/zsh-completions/src $fpath)
+        fi
 
-        setopt complete_aliases
+        #check if zload exists
+        setopt nullglob
+        if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
+            fpath=(~/zload $fpath)
+            for config_file (~/zload/*.zsh) source $config_file
+            setopt extendedglob
+            for config_file (~/zload/^*.zsh) autoload -U $config_file:t
+            setopt no_extendedglob
+        fi
+        setopt no_nullglob
+
+        HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND="bg=blue,fg=white,bold"
+        export HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND
+
+        # avoid slow pastes
+        ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=10
+
+        FIGNORE='.pyc:.o'
+
+        umask 022
+        HISTFILE=~/.zsh_history
+        HISTSIZE=900000000
+        SAVEHIST=$HISTSIZE
+
+        if [[ -d ~/bin/$OS ]]; then
+            PATH=~/bin/$OS:$PATH
+        fi
+
         if (( $+commands[git] )); then
-            GIT_VERSION=$(git --version | awk '{print $2}')
+            GIT_VERSION=$(git --version | awk '{print $3}')
 
             function git_lex {
+                # compdef git_lex=git
+                local cmd extra
                 cmd=$1
                 shift
 
@@ -296,40 +349,9 @@ case $USERNAME in
                 git $cmd $=extra $@
             }
             alias git='git_lex'
+            setopt complete_aliases
         fi
 
-        # use even more autocompletions
-        if [[ -d ~/src/zsh-completions/src ]]; then
-            fpath=(~/src/zsh-completions/src $fpath)
-        fi
-
-        #check if zload exists
-        setopt nullglob
-        if [[ -d ~/zload ]] && [[ -n $(echo ~/zload/*) ]]; then
-            fpath=(~/zload $fpath)
-            for config_file (~/zload/*.zsh) source $config_file
-            setopt extendedglob
-            for config_file (~/zload/^*.zsh) autoload -U $config_file:t
-            setopt no_extendedglob
-        fi
-        setopt no_nullglob
-
-        HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND="bg=blue,fg=white,bold"
-        export HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND
-
-        # avoid slow pastes
-        ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=10
-
-        FIGNORE='.pyc:.o'
-
-        umask 022
-        HISTFILE=~/.zsh_history
-        HISTSIZE=900000000
-        SAVEHIST=$HISTSIZE
-
-        if [[ -d ~/bin/$OS ]]; then
-            PATH=~/bin/$OS:$PATH
-        fi
     ;;
 
     *)  #let's do this
@@ -385,12 +407,6 @@ if [[ $BINDKEYMODE == "vi" ]]; then
     bindkey "^[[1;5C" forward-word
 fi
 setprompt
-
-setopt null_glob
-fpath=($fpath /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions
-       /usr/share/zsh/*/functions /usr/local/share/zsh/*/functions
-       ~/public/share/zsh/*/functions)
-unsetopt null_glob
 
 #remove any duplicates
 typeset -U fpath
@@ -545,9 +561,9 @@ zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
 zstyle ':completion:*:default' list-prompt '%S%M matches%s'
 
 # case-insensitive (uppercase from lowercase) completion
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+#zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 # case-insensitive (all) completion
-#zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # case-insensitive, partial-word and then substring completion
 #zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
