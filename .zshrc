@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # profiling dotfiles https://kev.inburke.com/kevin/profiling-zsh-startup-time/
 PROFILE_STARTUP=false
 if [[ $PROFILE_STARTUP == true ]]; then
@@ -26,8 +33,6 @@ unsetopt list_beep menu_complete
 
 #aliases
 alias ls='ls -F'
-alias d='ls -C'
-alias dir='ls -lg'
 alias ssh='ssh -A'
 alias laxssh='ssh -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no -oLogLevel=ERROR'
 alias sudo='sudo -E'
@@ -253,14 +258,6 @@ $PR_DEFAULT'
 
 # put functions before site-functions
 setopt null_glob
-#fpath=($fpath
-#       /pkg/zsh-$ZSH_VERSION/share/zsh/$ZSH_VERSION/functions
-#       /usr/local/share/zsh/functions
-#       /usr/local/share/zsh/site-functions
-#       /usr/local/share/zsh/*/functions
-#       ~/public/share/zsh/*/functions
-#       /usr/share/zsh/*/functions
-#)
 fpath=(/usr/local/share/zsh/functions
     /usr/local/share/zsh/site-functions
     $fpath)
@@ -499,12 +496,47 @@ function zman {
     PAGER="less -g -s '+/^       "$1"'" man zshall
 }
 
+###chpwd_zz() {
+###  print -P '0\t%D{%s}\t1\t%~' >>~/.zz
+###}
+###zz() {
+###  awk -v ${(%):-now='%D{%s}'} <~/.zz '
+###    function r(t,f) {
+###      age = now - t
+###      return (age<3600) ? f*4 : (age<86400) ? f*2 : (age<604800) ? f/2 : f/4
+###    }
+###    { f[$4]+=$3; if ($2>l[$4]) l[$4]=$2 }
+###    END { for(i in f) printf("%d\t%d\t%d\t%s\n",r(l[i],f[i]),l[i],f[i],i) }' |
+###      sort -k2 -n -r | sed 9000q | sort -n -r -o ~/.zz
+###  if (( $# )); then
+###    local p=$(awk 'NR != FNR { exit }  # exit after first file argument
+###                   { for (i = 3; i < ARGC; i++) if ($4 !~ ARGV[i]) next
+###                     print $4; exit }' ~/.zz ~/.zz "$@")
+###    [[ $p ]] || return 1
+###    local op=print
+###    [[ -t 1 ]] && op=cd
+###    if [[ -d ${~p} ]]; then
+###      $op ${~p}
+###    else
+###      # clean nonexisting paths and retry
+###      while read -r line; do
+###        [[ -d ${~${line#*$'\t'*$'\t'*$'\t'}} ]] && print -r $line
+###      done <~/.zz | sort -n -r -o ~/.zz
+###      zz "$@"
+###    fi
+###  else
+###    sed 10q ~/.zz
+###  fi
+###}
+###alias z=' zz'
+###chpwd_functions=( ${(kM)functions:#chpwd?*} )
+
 # use 'cdr' for this
 autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
 add-zsh-hook chpwd chpwd_recent_dirs
-zstyle ':chpwd:*' recent-dirs-max 20
-zstyle ':chpwd:*' recent-dirs-default true
-zstyle ':completion:*' recent-dirs-insert fallback
+#zstyle ':chpwd:*' recent-dirs-max 20
+#zstyle ':chpwd:*' recent-dirs-default true
+#zstyle ':completion:*' recent-dirs-insert fallback
 
 # cd to a file (cd path/path/file)
 # go to the directory containing the file, no questions asked
@@ -663,3 +695,6 @@ if [[ $PROFILE_STARTUP == true ]]; then
     unsetopt xtrace
     exec 2>&3 3>&-
 fi
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

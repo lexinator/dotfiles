@@ -86,6 +86,7 @@ export HOMEBREW_NO_INSECURE_REDIRECT=1
 export HOMEBREW_NO_ANALYTICS=1
 
 export KO_DOCKER_REPO='host.docker.local:5000/ludeman'
+export COURSIER_CREDENTIALS=~/.config/coursier/credentials.properties
 
 [[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
 
