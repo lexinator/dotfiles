@@ -1,176 +1,11 @@
-hs.ipc.cliInstall()
+local log = hs.logger.new('init.lua', 'debug')
+log.d("Loading module")
 
---
-save_window_state = {}
-local configFileWatcher = nil
+require("vpn")
 
 local cmd_ctrl = {"cmd", "ctrl"}
 local cmd_alt_ctrl = {"cmd", "alt", "ctrl"}
-local hyper = {"cmd", "alt", "ctrl", "shift"}
-
-function vertical_resize()
-  local win = hs.window.focusedWindow()
-  local frame = win:frame()
-  local id = win:id()
-
-  local screen = win:screen()
-  local max = screen:frame()
-
-  if (frame.h >= max.h - 10 or frame.h >= max.h) and frame.y == max.y then
-      -- window is at max, if previous state exists revert
-      local prev_state = save_window_state[id]
-      if prev_state then
-        frame.x = prev_state.x
-        frame.y = prev_state.y
-        frame.h = prev_state.h
-        frame.w = prev_state.w
-
-        win:setFrame(frame, 0)
-      else
-        -- if no previous state, shrink it by 50%
-        frame.h = frame.h / 2
-        win:setFrame(frame, 0)
-      end
-  else
-      if save_window_state[id] then
-          -- if current state != max size, then it's changed since
-          -- we last stored and we should update it
-          local prev_state = save_window_state[id]
-          if prev_state.y ~= max.y and prev_state.h ~= max.h then
-              save_window_state[id] = {
-                  x=frame.x,
-                  y=frame.y,
-                  h=frame.h,
-                  w=frame.w
-          }
-          end
-      else
-          save_window_state[id] = {
-              x=frame.x,
-              y=frame.y,
-              h=frame.h,
-              w=frame.w
-          }
-      end
-
-      frame.y = max.y
-      frame.h = max.h
-
-      win:setFrame(frame, 0)
-  end
-end
-
-function horizontal_resize()
-  local win = hs.window.focusedWindow()
-  local frame = win:frame()
-  local id = win:id()
-
-  local screen = win:screen()
-  local max = screen:frame()
-
-  if (frame.w >= max.w - 10 or frame.w >= max.w) and frame.x == max.x then
-      -- window is at max, if previous state exists revert
-      local prev_state = save_window_state[id]
-      if prev_state then
-        frame.x = prev_state.x
-        frame.y = prev_state.y
-        frame.h = prev_state.h
-        frame.w = prev_state.w
-
-        win:setFrame(frame, 0)
-      else
-        -- if no previous state, shrink it by 50%
-        frame.w = frame.w / 2
-        win:setFrame(frame, 0)
-      end
-  else
-      if save_window_state[id] then
-          -- if current state != max size, then it's changed since
-          -- we last stored and we should update it
-          local prev_state = save_window_state[id]
-          if prev_state.x ~= max.x and prev_state.w ~= max.w then
-              save_window_state[id] = {
-                  x=frame.x,
-                  y=frame.y,
-                  h=frame.h,
-                  w=frame.w
-              }
-          end
-      else
-          save_window_state[id] = {
-              x=frame.x,
-              y=frame.y,
-              h=frame.h,
-              w=frame.w
-          }
-      end
-
-      if not save_window_state[id] then
-          save_window_state[id] = {
-              x=frame.x,
-              y=frame.y,
-              h=frame.h,
-              w=frame.w,
-              state='max'
-          }
-      end
-
-      frame.x = max.x
-      frame.w = max.w
-
-      win:setFrame(frame, 0)
-  end
-end
-
--- move window left
-hs.hotkey.bind(hyper, "f1", function()
-  local win = hs.window.focusedWindow()
-  local f = win:frame()
-
-  f.x = f.x - 10
-  win:setFrame(f, 0)
-end)
-
--- move window right
-hs.hotkey.bind(hyper, "f2", function()
-  local win = hs.window.focusedWindow()
-  local f = win:frame()
-
-  f.x = f.x + 10
-  win:setFrame(f, 0)
-end)
-
-function vpn_connect()
-    hs.notify.new({
-        title="Hammerspoon",
-        informativeText="Connecting vpn...",
-    }):send()
-    os.execute("/Users/ludeman/bin/tvpn")
-end
-
-function vpn_disconnect()
-    hs.notify.new({
-        title="Hammerspoon",
-        informativeText="Disabling vpn...",
-    }):send()
-    os.execute("/Users/ludeman/bin/tvpn --disconnect")
-end
-
-function totp()
-    hs.notify.new({
-        title="Hammerspoon",
-        informativeText="totp...",
-    }):send()
-    os.execute("/Users/ludeman/bin/tufa | tr -d '\n' | pbcopy")
-end
-
-function totp_uat()
-    hs.notify.new({
-        title="Hammerspoon",
-        informativeText="totp uat...",
-    }):send()
-    os.execute("/Users/ludeman/bin/tufa --LP | sed -e 's/^ //' | tr -d '\n' | pbcopy")
-end
+-- local hyper = {"cmd", "alt", "ctrl", "shift"}
 
 -- borrowed from
 --    https://github.com/cmsj/hammerspoon-config/blob/master/init.lua
@@ -189,117 +24,37 @@ function typeCurrentSafariURL()
 end
 
 -- Define monitor names for layout purposes
-local display_laptop = "Color LCD"
+-- local display_laptop = "Color LCD"
+local display_laptop = "Built-in Retina Display"
 local display_monitor = "LG UltraFine"
-
--- Define audio device names for headphone/speaker switching
-local workHeadphoneDevice = "Turtle Beach USB Audio"
-local laptopSpeakerDevice = "MacBook Pro Speakers"
-
--- Defines for window grid
-hs.grid.GRIDWIDTH = 6
-hs.grid.GRIDHEIGHT = 6
-hs.grid.MARGINX = 0
-hs.grid.MARGINY = 0
-
---  every window hint starts with the 1st character of the parent apps title
-hs.hints.style = "vimperator"
-
--- debugging tool start
-local point_in_rect = function(rect, point)
-    return  point.x >= rect.x and
-            point.y >= rect.y and
-            point.x <= rect.x + rect.w and
-            point.y <= rect.y + rect.h
-end
-
-local window_underneath_mouse = function()
-    local pos = hs.mouse.getAbsolutePosition()
-    local win = hs.fnutils.find(hs.window.orderedWindows(), function(window)
-        return point_in_rect(window:frame(), pos)
-    end)
-    return win or window.windowForID(0) or window.windowForID(nil)
-end
-
-local dev = hs.hotkey.modal.new(cmd_alt_ctrl, "=", 'Debug Modal')
-function dev:entered()
-    hs.alert.show('entered Debug modal  <esc> to exit', 5)
-end
-dev:bind({}, 'escape', 'Quit Debug Modal',
-    function()
-        dev:exit()
-    end)
-
-dev:bind({}, "A", 'Show Window underneath Mouse',
-    function()
-        local win = window_underneath_mouse()
-        print("App: '" .. win:application():title() ..
-                "' Window: '" .. win:title() .. "'")
-        print(" x:" ..win:frame().x ..
-              " y:" ..win:frame().y ..
-              " h:" ..win:frame().h ..
-              " w:" ..win:frame().w)
-        dev:exit()
-    end
-)
-dev:bind({}, "B", 'Show prev Window underneath Mouse',
-    function()
-        local win = window_underneath_mouse()
-        local id = win:id()
-        local prev_state = save_window_state[id]
-
-        print("App: '" .. win:application():title() ..
-                "' Window: '" .. win:title() .. "'")
-        print(" x:" ..win:frame().x ..
-              " y:" ..win:frame().y ..
-              " h:" ..win:frame().h ..
-              " w:" ..win:frame().w)
-
-        if prev_state then
-            print(" prev_state.x:" .. prev_state.x ..
-                  " prev_state.y:" .. prev_state.y ..
-                  " prev_state.h:" .. prev_state.h ..
-                  " prev_state.w:" .. prev_state.w)
-        else
-            print("no prev_state")
-        end
-
-        local screen = win:screen()
-        local max = screen:frame()
-        print(" max.x:" .. max.x ..
-              " max.y:" .. max.y ..
-              " max.h:" .. max.h ..
-              " max.w:" .. max.w)
-    end
-)
-
--- debugging tool end
 
 -- Define window layouts
 -- {"App name", "Window name", "Display Name", "unitrect", "framerect", "fullframerect"},
 local internal_display = {
-    {"Safari",        nil,        display_laptop, hs.layout.left80, nil, nil},
-    {"Google Chrome", nil,        display_laptop, hs.layout.left75, nil, nil},
-    {"Mail",          nil,        display_laptop, {x=0, y=0, w=0.75, h=0.9}, nil, nil},
-    {"IntelliJ IDEA", nil,        display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
-    {"IntelliJ IDEA-EAP", nil,    display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
+     {"Safari",        nil, display_laptop, {x=0, y=0, w=0.8, h=1}, nil, nil},
+     {"Mail",          nil, display_laptop, {x=0, y=0, w=0.75, h=0.9}, nil, nil},
+     {"IntelliJ IDEA", nil, display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
+     {"Radar",         nil, display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
+--    {"IntelliJ IDEA-EAP", nil,    display_laptop, {x=0, y=0, w=0.9, h=1}, nil, nil},
 
-    {"Messages",      nil,        display_laptop, {x=0, y=0, w=0.3, h=.3}, nil, nil},
-    {"Music",         nil,        display_laptop, hs.layout.right75, nil},
-    {"Slack",         nil,        display_laptop, {x=.60, y=0, w=.40, h=1}, nil, nil},
+-- something broken here
+--    {"Messages",      nil, display_laptop, {x=0, y=0, w=0.3, h=.3}, nil, nil},
+     {"Music",         nil, display_laptop, hs.layout.right75, nil},
+     {"Slack",         nil, display_laptop, {x=.60, y=0, w=.40, h=1}, nil, nil},
 }
 
 local dual_display = {
-    {"Safari",        nil,        display_monitor, hs.layout.left70,        nil, nil},
-    {"Google Chrome", nil,        display_monitor, hs.layout.left75,        nil, nil},
-    {"Mail",          nil,        display_monitor, hs.layout.left70,        nil, nil},
-    {"IntelliJ IDEA", nil,        display_monitor, hs.layout.left80,        nil, nil},
-    {"IntelliJ IDEA-EAP", nil,    display_monitor, hs.layout.left80,        nil, nil},
+    {"Safari",        nil, display_monitor, hs.layout.left70,        nil, nil},
+    {"Mail",          nil, display_monitor, hs.layout.left70,        nil, nil},
+    {"Radar",         nil, display_monitor, hs.layout.left70,        nil, nil},
+    {"IntelliJ IDEA", nil, display_monitor, hs.layout.left80,        nil, nil},
+--    {"IntelliJ IDEA-EAP", nil,    display_monitor, hs.layout.left80,        nil, nil},
 
-    {"Messages",      nil,        display_monitor, {x=0, y=0, w=0.3, h=.3}, nil, nil},
-    {"Slack",         nil,        display_monitor, {x=.60, y=0, w=.40, h=1},  nil, nil},
+    {"Slack",         nil, display_monitor, {x=.60, y=0, w=.40, h=1},  nil, nil},
 
     {"Music",        nil,         display_laptop,  hs.layout.left75,        nil, nil},
+--     something is broken with this one
+--    {"Messages",      nil,        display_monitor, hs.geometry.rect(0, 0, 0.3, .3), nil, nil},
 }
 
 -- Defines for screen watcher
@@ -319,8 +74,25 @@ function screensChangedCallback()
 
     numberOfScreens = currentNumberOfScreens
 end
+
 screenWatcher = hs.screen.watcher.new(screensChangedCallback)
 screenWatcher:start()
+
+-- hs.ipc.cliInstall()
+
+local configFileWatcher = nil
+
+require('hidutil')
+RemapKeys()
+
+require("keys")
+
+-- Define audio device names for headphone/speaker switching
+local workHeadphoneDevice = "Turtle Beach USB Audio"
+local laptopSpeakerDevice = "MacBook Pro Speakers"
+
+--  every window hint starts with the 1st character of the parent apps title
+hs.hints.style = "vimperator"
 
 -- Toggle between laptop speakers and turtle beach audio
 function toggle_audio_output()
@@ -366,7 +138,7 @@ end
 
 -- Callback function for USB device events
 function usbDeviceCallback(data)
-    print("usbDeviceCallback: "..hs.inspect(data))
+    -- print("usbDeviceCallback: "..hs.inspect(data))
 
     -- apple monitor
     if (data["productName"] == "Apple Thunderbolt Display") then
@@ -448,66 +220,90 @@ end
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
 
-hs.hotkey.bind(hyper, "f5", 'Vertical Resize', vertical_resize)
-hs.hotkey.bind(hyper, "f6", 'Horizontial Resize', horizontal_resize)
-hs.hotkey.bind(hyper, "l", 'Lockscreen', hs.caffeinate.startScreensaver)
-hs.hotkey.bind(hyper, 'q', 'Console', hs.toggleConsole)
-hs.hotkey.bind(hyper, 'p', 'sPeaker Toggle', toggle_audio_output)
-hs.hotkey.bind(hyper, 'c', 'Connect VPN', vpn_connect)
-hs.hotkey.bind(hyper, 'd', 'Disconnect VPN', vpn_disconnect)
+require('window-management')
+HyperMode:bind({}, "f5", 'Vertical Resize', vertical_resize)
+HyperMode:bind({}, "f6", 'Horizontial Resize', horizontal_resize)
+-- move window left
+HyperMode:bind({}, "f1", function()
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
 
-hs.hotkey.bind(hyper, 'i', 'iterm', function()
+  f.x = f.x - 10
+  win:setFrame(f, 0)
+end)
+
+-- move window right
+HyperMode:bind({}, "f2", function()
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
+
+  f.x = f.x + 10
+  win:setFrame(f, 0)
+end)
+
+HyperMode:bind({}, "l", 'Lockscreen', hs.caffeinate.startScreensaver)
+HyperMode:bind({}, 'q', 'Console', hs.toggleConsole)
+-- HyperMode:bind({}, 'p', 'sPeaker Toggle', toggle_audio_output)
+HyperMode:bind({}, 'p', '1password 7', function()
+    hs.application.launchOrFocus("1Password 7")
+end)
+
+HyperMode:bind({}, 'c', 'Connect VPN', vpn_connect)
+
+HyperMode:bind({}, 'i', 'iterm', function()
     hs.application.launchOrFocus("iTerm")
 end)
-hs.hotkey.bind(hyper, 's', 'safari', function()
+HyperMode:bind({}, 's', 'safari', function()
     hs.application.launchOrFocus("Safari")
 end)
-hs.hotkey.bind(hyper, 'j', 'IntelliJ IDEA', function()
-    hs.application.launchOrFocus("IntelliJ IDEA 2019.3 EAP")
+HyperMode:bind({}, 'j', 'IntelliJ IDEA', function()
+    hs.application.launchOrFocus("IntelliJ IDEA")
 end)
-hs.hotkey.bind(hyper, 'g', 'chrome', function()
+HyperMode:bind({}, 'g', 'chrome', function()
     hs.application.launchOrFocus("Google Chrome")
 end)
-hs.hotkey.bind(hyper, 'k', 'slack', function()
+HyperMode:bind({}, 'k', 'slack', function()
     hs.application.launchOrFocus("slack")
 end)
-hs.hotkey.bind(hyper, 'r', 'radar', function()
-    hs.application.launchOrFocus("radarx")
-end)
-hs.hotkey.bind(hyper, 'a', 'agile', function()
-    hs.application.launchOrFocus("agile")
+HyperMode:bind({}, 'r', 'radar', function()
+    hs.application.launchOrFocus("radar 8")
 end)
 
-hs.hotkey.bind(cmd_ctrl, '1', 'totp', totp)
-hs.hotkey.bind(cmd_ctrl, '2', 'totp uat', totp_uat)
+HyperMode:bind(cmd_ctrl, '1', 'totp', totp)
+HyperMode:bind(cmd_ctrl, '2', 'totp uat', totp_uat)
 
-hs.hotkey.bind(hyper, 'u', 'Paste Current Safari URL', function()
+HyperMode:bind({}, 'u', 'Paste Current Safari URL', function()
     hs.timer.doAfter(1, typeCurrentSafariURL)
 end)
-hs.hotkey.bind(hyper, "V", 'Paste (simulated keypresses)', function()
+HyperMode:bind({}, "V", 'Paste (simulated keypresses)', function()
     hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 end)
-hs.hotkey.showHotkeys(hyper, 'h')
+-- hs.hotkey.showHotkeys({}, 'h')
+--
+-- TODO: figure out how to map this to above
+-- HyperMode:bind({}, "h", "words", function()
+--     hs.hotkey.showHotkeys
+--     hs.hotkey.new()
+-- end)
 
-hs.hotkey.bind({"alt"}, "tab", 'Window Hints', hs.hints.windowHints)
-hs.hotkey.bind(hyper, '1', 'Single Monitor Layout', function()
+-- hs.hotkey.bind({"alt"}, "tab", 'Window Hints', hs.hints.windowHints)
+HyperMode:bind({}, '1', 'Single Monitor Layout', function()
+    log.d("switching to single monitor mode...")
     hs.layout.apply(internal_display)
 end)
-hs.hotkey.bind(hyper, '2', 'Dual Monitor Layout', function()
+HyperMode:bind({}, '2', 'Dual Monitor Layout', function()
+    log.d("hi mom", dual_display)
     hs.layout.apply(dual_display)
 end)
-hs.hotkey.bind(hyper, '0', 'Show watchers', function()
+HyperMode:bind({}, '0', 'Show watchers', function()
     print(configFileWatcher)
     print(screenWatcher)
     print(usbWatcher)
 end)
 
--- make control key at an escape when pressed without addition keys
-hs.loadSpoon("ControlEscape"):start()
-
 -- resize windows
 -- if f4 and iterm, then shrink to exactly 80 columns
-hs.hotkey.bind(hyper, 'f4', 'narrow window in focus', function()
+HyperMode:bind({}, 'f4', 'narrow window in focus', function()
     local win = hs.window.focusedWindow()
     local app = win:application():title()
     local frame = win:frame()
@@ -521,41 +317,31 @@ hs.hotkey.bind(hyper, 'f4', 'narrow window in focus', function()
     end
 end)
 
-hs.hotkey.bind(hyper, 'f7', 'widen window in focus', function()
+HyperMode:bind({}, 'f7', 'widen window in focus', function()
     hs.grid.resizeWindowWider()
 end)
 
--- auto reload when file changes
-function reload_config(files)
-    doReload = false
-    for _,file in pairs(files) do
-        if file:sub(-4) == ".lua" then
-            doReload = true
-        end
-    end
-    if doReload then
-        hs.reload()
-    end
-end
+-- make control key at an escape when pressed without addition keys
+-- hs.loadSpoon("ControlEscape"):start()
 
 hs.loadSpoon("Seal")
 spoon.Seal:bindHotkeys({show={{"cmd"}, "space"}})
 spoon.Seal:loadPlugins(
-    {"apps", "useractions"}
+{"apps", "useractions"}
 )
 spoon.Seal.plugins.useractions.actions = {
     ["Hammerspoon docs webpage"] = {
         url = "http://hammerspoon.org/docs/",
         icon = hs.image.imageFromName(hs.image.systemImageNames.ApplicationIcon),
     },
-    ["Tell me something"] = {
+    ["say"] = {
         keyword = "tellme",
         fn = function(str) hs.alert.show(str) end,
     },
     ["open"] = {
         keyword = "open",
         fn = function(str)
-          os.execute("open " .. str)
+            os.execute("open " .. str)
         end
     },
 }
@@ -566,33 +352,117 @@ hs.loadSpoon("FnMate")
 hs.loadSpoon("KSheet")
 spoon.KSheet:bindHotkeys({toggle={cmd_ctrl, "/"}})
 
+-- {{{ Hyper-Enter -> Open clipboard contents.
+HyperMode:bind({}, 'return', function()
+  log.d("Opening clipboard contents.")
+  local clipboard = hs.pasteboard.getContents():gsub("%s*$", "")
+  hs.task.new("/usr/bin/open", function(exitCode, stdOut, stdErr)
+    hs.notify.new({
+      title = 'Opening Clipboard Contents...',
+      subTitle = clipboard,
+      informativeText = exitCode .. " " .. stdOut,
+      stdErr,
+      withdrawAfter = 3
+    }):send()
+  end, {clipboard}):start()
+end)
+-- }}} Hyper-Enter -> Open clipboard contents.
+
+
 -- local ctrlTab = hs.hotkey.new({"ctrl"}, "tab", nil, function()
---   hs.eventtap.keyStroke({"alt"}, "w")
--- end)
--- chromeWatcher = hs.application.watcher.new(function(name, eventType, app)
---   if eventType ~= hs.application.watcher.activated then return end
---   if name == "Google Chrome" then
---     ctrlTab:enable()
---   else
---     ctrlTab:disable()
---   end
--- end)
--- chromeWatcher:start()
+    --   hs.eventtap.keyStroke({"alt"}, "w")
+    -- end)
+    -- chromeWatcher = hs.application.watcher.new(function(name, eventType, app)
+        --   if eventType ~= hs.application.watcher.activated then return end
+        --   if name == "Google Chrome" then
+        --     ctrlTab:enable()
+        --   else
+        --     ctrlTab:disable()
+        --   end
+        -- end)
+        -- chromeWatcher:start()
 
--- menuHammer = hs.loadSpoon("MenuHammer")
--- menuHammer:enter()
+        -- menuHammer = hs.loadSpoon("MenuHammer")
+        -- menuHammer:enter()
 
--- pomodoro key binding
-require "pomodoro"
-hs.hotkey.bind(hyper, '-', "pomodoro close", function() pom_remove() end)
-hs.hotkey.bind(hyper, '[', "pomodoro start", function() pom_enable() end)
-hs.hotkey.bind(hyper, ']', "pomodoro pause", function() pom_disable() end)
-hs.hotkey.bind(hyper, '\\', "pomodoro reset counter", function() pom_reset_work() end)
+        -- pomodoro key binding
+        -- require "pomodoro"
+        -- hs.hotkey.bind(hyper, '-', "pomodoro close", function() pom_remove() end)
+        -- hs.hotkey.bind(hyper, '[', "pomodoro start", function() pom_enable() end)
+        -- hs.hotkey.bind(hyper, ']', "pomodoro pause", function() pom_disable() end)
+        -- hs.hotkey.bind(hyper, '\\', "pomodoro reset counter", function() pom_reset_work() end)
+        --
+        --
+        -- track the frequency selecting of the app
+        -- store the new value after app is started
+        -- when hammerspoon boots up read the table back in
+        -- https://www.hammerspoon.org/docs/hs.settings.html
+        -- `hs.settings.getKeys() -> table`
+        --  lines={ foo = 10}
+        --  for i,n in pairs(lines) do print(i, "--", n) end
 
-configFileWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/",
-                                       reload_config)
+-- local VimMode = hs.loadSpoon('VimMode')
+-- local vim = VimMode:new()
+
+-- vim
+-- --  :enableBetaFeature('block_cursor_overlay')
+--   :disableForApp('Code')
+--   :disableForApp('MacVim')
+--   :disableForApp('zoom.us')
+--   :disableForApp('iTerm')
+--   :disableForApp('IntelliJ IDEA')
+--   :enterWithSequence('jk')
+--   :bindHotKeys({ enter = { hyper, 'n'} })
+--
+hs.loadSpoon("MiroWindowsManager")
+
+hs.window.animationDuration = 0
+-- TODO: figure out how to map f17 to this
+-- spoon.MiroWindowsManager:bindHotkeys({
+  -- up = {"" , "up"},
+  -- right = {"", "right"},
+  -- down = {"", "down"},
+  -- left = {"", "left"},
+  -- fullscreen = {"", "f"},
+  -- nextscreen = {"", "n"}
+-- })
+
+
+-- hs.loadSpoon("TextClipboardHistory")
+-- figure this out
+-- spoon.TextClipboardHistory:bindHotKeys({toggle_clipboard={ {"cmd", "shift" }, "v" }})
+
+-- hs.loadSpoon("TimeMachineProgress")
+-- spoon.TimeMachineProgress:start()
+
+-- auto reload when file changes
+function reload_config(files, flags)
+    doReload = false
+    -- log.d("flags: " .. flags)
+
+    for eventType, file in pairs(files) do
+        log.d("looking at (" .. eventType ..") " .. file)
+
+
+        if file:sub(-4) == ".lua" then
+            doReload = true
+        end
+    end
+
+    if doReload then
+        hs.reload()
+    end
+end
+configFileWatcher = hs.pathwatcher.new(
+        os.getenv("HOME") .. "/.hammerspoon/",
+        reload_config
+)
 configFileWatcher:start()
+
 hs.notify.new({
     title='Hammerspoon',
-    informativeText='Config loaded'
+    informativeText = '✅ config loaded',
+--    withdrawAfter = 5,
 }):send()
+
+-- vim: foldmethod=marker
