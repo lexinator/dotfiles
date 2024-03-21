@@ -120,4 +120,25 @@ function horizontal_resize()
   end
 end
 
+HyperMode:bind({}, "f5", 'Vertical Resize', vertical_resize)
+HyperMode:bind({}, "f6", 'Horizontial Resize', horizontal_resize)
+
+-- move window left
+HyperMode:bind({}, "f1", function()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+
+    f.x = f.x - 10
+    win:setFrame(f, 0)
+end)
+
+-- move window right
+HyperMode:bind({}, "f2", function()
+    local win = hs.window.focusedWindow()
+    local f = win:frame()
+
+    f.x = f.x + 10
+    win:setFrame(f, 0)
+end)
+
 -- vim: foldmethod=marker

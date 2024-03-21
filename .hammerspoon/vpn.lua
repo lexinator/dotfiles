@@ -29,3 +29,8 @@ function totp_uat()
     }):send()
     os.execute("/Users/ludeman/bin/tufa --LP | sed -e 's/^ //' | tr -d '\n' | pbcopy")
 end
+
+-- HyperMode:bind(cmd_ctrl, '1', 'totp', totp)
+-- HyperMode:bind(cmd_ctrl, '2', 'totp uat', totp_uat)
+
+HyperMode:bind({}, 'c', 'Connect VPN', vpn_connect)

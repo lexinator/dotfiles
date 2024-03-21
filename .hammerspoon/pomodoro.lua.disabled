@@ -203,3 +203,10 @@ end
 
 pom_create_menu()
 pom_update_menu()
+
+-- pomodoro key binding
+-- require "pomodoro"
+-- hs.hotkey.bind(hyper, '-', "pomodoro close", function() pom_remove() end)
+-- hs.hotkey.bind(hyper, '[', "pomodoro start", function() pom_enable() end)
+-- hs.hotkey.bind(hyper, ']', "pomodoro pause", function() pom_disable() end)
+-- hs.hotkey.bind(hyper, '\\', "pomodoro reset counter", function() pom_reset_work() end)

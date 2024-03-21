@@ -1,3 +1,5 @@
+local cmd_alt_ctrl = {"cmd", "alt", "ctrl"}
+
 -- debugging tool start
 local point_in_rect = function(rect, point)
     return  point.x >= rect.x and
@@ -7,7 +9,7 @@ local point_in_rect = function(rect, point)
 end
 
 local window_underneath_mouse = function()
-    local pos = hs.mouse.getAbsolutePosition()
+    local pos = hs.mouse.absolutePosition()
     local win = hs.fnutils.find(hs.window.orderedWindows(), function(window)
         return point_in_rect(window:frame(), pos)
     end)
@@ -23,7 +25,7 @@ dev:bind({}, 'escape', 'Quit Debug Modal',
             dev:exit()
         end)
 
-dev:bind({}, "A", 'Show Window underneath Mouse',
+dev:bind({}, "a", 'Show Window underneath Mouse',
         function()
             local win = window_underneath_mouse()
             print("App: '" .. win:application():title() ..
@@ -35,7 +37,7 @@ dev:bind({}, "A", 'Show Window underneath Mouse',
             dev:exit()
         end
 )
-dev:bind({}, "B", 'Show prev Window underneath Mouse',
+dev:bind({}, "b", 'Show prev Window underneath Mouse',
         function()
             local win = window_underneath_mouse()
             local id = win:id()
