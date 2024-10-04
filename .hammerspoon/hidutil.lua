@@ -35,13 +35,10 @@ RemapKeyWatcher = hs.caffeinate.watcher.new(function(event)
   if eventsToMatch[event] then
     log.d("RemapKeyWatcher found matching event: " .. event)
     RemapKeys()
+    HyperMode:reset()
   end
 end)
 RemapKeyWatcher:start()
 
--- {{{ §/CapsLock -> Run hidutil script to re-apply key mappings.
--- These keys are both keys I don't use, that only exist pre-mapping.
-hs.hotkey.bind({}, '§', RemapKeys)
+-- CapsLock -> Run hidutil script to re-apply key mappings.
 hs.hotkey.bind({}, 'capslock', RemapKeys)
--- }}} §/CapsLock -> Run hidutil script to re-apply key mappings.
-

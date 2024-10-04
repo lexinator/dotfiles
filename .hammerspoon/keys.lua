@@ -1,4 +1,4 @@
-local log = hs.logger.new('keys')
+local log = hs.logger.new('keys', 'info')
 log.i("Loading module")
 
 -- F18 is my Hammer key
@@ -16,6 +16,11 @@ function HyperMode:exited()
     self.isDown = false
 end
 
+function HyperMode:reset()
+    log.i("Resetting Hammer state")
+    self.isDown = false
+end
+
 -- sanity check for accessibility
 log.i('Is Hammerspoon enabled under Privacy/Accessibility: ' .. (hs.accessibilityState() and "true" or "false"))
 if (hs.eventtap.isSecureInputEnabled()) then
@@ -25,6 +30,8 @@ if (hs.eventtap.isSecureInputEnabled()) then
                    otherButtonTitle = "Okay"})
             :send()
 end
+
+HyperMode:reset()
 
 -- 2022-01-27 "Better" way to capture f18, this way it'll trigger whether or not
 -- you already had shift, alt, cmd, etc held down. With hd.hotkey.bind, I'd have
