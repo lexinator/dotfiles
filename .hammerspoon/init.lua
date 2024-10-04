@@ -56,6 +56,18 @@ HyperMode:bind({}, 's', 'safari', function()
     hs.application.launchOrFocus("Safari")
 end)
 
+function connectSnorkel()
+    hs.notify.new({
+        title="Hammerspoon",
+        informativeText="Connecting to snorkel..."
+    }):send()
+    -- https://gist.github.com/nriley/f2dfb2955836462b8f7806ce0da76bfb
+    -- https://github.com/Ocasio-J/SidecarLauncher?tab=readme-ov-file
+    os.execute("/Users/ludeman/bin/SidecarLauncher connect snorkel")
+end
+
+HyperMode:bind({}, 'w', 'sidecar to snorkel', connectSnorkel)
+
 -- hs.hotkey.showHotkeys({"command", "ctrl"}, 'h')
 -- TODO: figure out how to map this to above
 HyperMode:bind({}, "h", nil, function()
@@ -110,6 +122,12 @@ spoon.Seal.plugins.useractions.actions = {
         keyword = "open",
         fn = function(str)
             os.execute("open " .. str)
+        end
+    },
+    ["go"] = {
+        keyword = "go",
+        fn = function(str)
+            os.execute("open https://at.apple.com/" .. str)
         end
     },
 }
