@@ -1,6 +1,8 @@
 local log = hs.logger.new('usb', 'debug')
 log.d("Loading module")
 
+require("hid-lib")
+
 -- Callback function for USB device events
 function usbDeviceCallback(data)
     print("usbDeviceCallback: "..hs.inspect(data))
@@ -63,7 +65,7 @@ function usbDeviceCallback(data)
         event = data["eventType"]
 
         if (event == "added") then
-            -- at a sunnyvale desk with USB Audio
+            -- at the office desk with USB Audio
             hs.notify.new({
                 title="Hammerspoon",
                 informativeText="Audio set to TurtleBeach USB Audio",
@@ -81,6 +83,21 @@ function usbDeviceCallback(data)
             hs.audiodevice.defaultOutputDevice():setVolume(15)
         end
     end
+
+    if (data["productName"] == "Keychron K8") then
+        event = data["eventType"]
+
+        if (event == "added") then
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="keychron attached - remapping keys",
+            }):send()
+
+           RemapKeys()
+        end
+    end
+
+
 end
 
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
