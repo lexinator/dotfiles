@@ -11,6 +11,8 @@ hs.hints.style = "vimperator"
 
 require("keys")
 
+require("lights-control")
+
 require("vpn")
 
 require("screen")
@@ -188,7 +190,7 @@ end)
 -- hs.loadSpoon("TimeMachineProgress")
 -- spoon.TimeMachineProgress:start()
 
--- require("debugger")
+require("debugger")
 
 require("window")
 require("windowcycler")
