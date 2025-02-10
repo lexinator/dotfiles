@@ -53,6 +53,25 @@ function screensChangedCallback()
     numberOfScreens = currentNumberOfScreens
 end
 
+function maxBrightness()
+    for _,screen in pairs(hs.screen.allScreens()) do
+        newBrightness = 1.0
+        screen:setBrightness(newBrightness)
+    end
+end
+
+function dimScreens()
+    for _,screen in pairs(hs.screen.allScreens()) do
+        current = screen:getBrightness()
+
+        newBrightness = current - 1/17
+        if newBrightness < 0.0 then
+            newBrightness = 0.0
+        end
+        screen:setBrightness(newBrightness)
+    end
+end
+
 screenWatcher = hs.screen.watcher.new(screensChangedCallback)
 screenWatcher:start()
 
@@ -62,4 +81,12 @@ HyperMode:bind({}, '1', 'Single Monitor Layout', function()
 end)
 HyperMode:bind({}, '2', 'Dual Monitor Layout', function()
     hs.layout.apply(dual_display)
+end)
+
+HyperMode:bind({}, 'b', 'Max Brightness', function()
+    maxBrightness()
+end)
+
+HyperMode:bind({"shift"}, 'b', 'Reduce Brightness', function()
+    dimScreens()
 end)
