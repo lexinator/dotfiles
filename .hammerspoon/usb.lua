@@ -2,6 +2,7 @@ local log = hs.logger.new('usb', 'debug')
 log.d("Loading module")
 
 require("hid-lib")
+require("audio-lib")
 
 -- Callback function for USB device events
 function usbDeviceCallback(data)
@@ -72,7 +73,7 @@ function usbDeviceCallback(data)
             }):send()
 
             hs.audiodevice.defaultOutputDevice():setVolume(15)
-            set_headphones()
+            setHeadphones()
         elseif (event == "removed") then
             -- only using laptop monitor
             hs.notify.new({
@@ -97,7 +98,17 @@ function usbDeviceCallback(data)
         end
     end
 
+    if (data["productName"] == "Sennheiser Profile") then
+        event = data["eventType"]
 
+        if (event == "added") then
+            hs.notify.new({
+                title="Hammerspoon",
+                informativeText="setting sennheiser microphone as default",
+            }):send()
+            hs.timer.doAfter(3, setMicrophoneToPreferred)
+        end
+    end
 end
 
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
