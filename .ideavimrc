@@ -1,0 +1,145 @@
+" source ~/.vimrc
+
+let mapleader=" "
+"" any commands you execute are displayed at the bottom of the screen.
+set showcmd
+
+"" some extra key notes
+"" ctrl-] / gd / (command-b) - go to definition
+
+"" changing focus while in terminal
+""   exit  - command-1 (twice) / (option z if not in key capturing app like vi)
+""   enter - option-f12 to go to terminal
+
+"" tab shift plugin - https://github.com/dkandalov/tab-shifter
+"" resize
+""   option + shift + [ - stretch splitter left
+""   option + shift + ] - stretch splitter right
+""   option + shift + = - equal size splitter
+""   option + shift + M - maximize/restore splitter
+"" move focus
+""   ctrl + option + shift + ] - right
+""   ctrl + option + shift + [ - left
+""   ctrl + option + .         - next splitter
+
+"" https://github.com/JetBrains/ideavim/blob/master/doc/IdeaVim%20Plugins.md
+
+" replace with register (bundle plugin)
+" usage: https://github.com/vim-scripts/ReplaceWithRegister
+"" [count]["x]gr{motion}	Replace {motion} text with the contents of register x.
+"" 			Especially when using the unnamed register, this is
+"" 			quicker than "_d{motion}P or "_c{motion}<C-R>"
+"" [count]["x]grr		Replace [count] lines with the contents of register x.
+"" 			To replace from the cursor position to the end of the line use ["x]gr$
+"" {Visual}["x]gr		Replace the selection with the contents of register x.
+set ReplaceWithRegister
+
+"" standard join will merge code lines as needed
+set ideajoin
+
+""  plugins
+"" ys, cs, ds, S -> example: cs"' => replace " w/ '; ysiw" => add "" around current word
+Plug 'tpope/vim-surround'
+"" gcc, gc + motion, v_gc
+set commentary
+"" argument text objects: aa=an argument, ia=inner argument
+set argtextobj
+"" https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
+set easymotion
+
+"" lean on intellimacs for all the settings
+source ~/.intellimacs/spacemacs.vim
+source ~/.intellimacs/extra.vim
+source ~/.intellimacs/major.vim
+"" source ~/.intellimacs/hybrid.vim
+source ~/.intellimacs/which-key.vim
+" (Optional) Comma for major mode
+"" nmap , <leader>m
+"" vmap , <leader>m
+
+"" using 'z' instead of 's' due to surround
+"" map z <Plug>(easymotion-s2)
+"" map z <Plug>(easymotion-bd-f)
+"" nmap s <Plug>(easymotion-fn)
+"" nmap s <Plug>(easymotion-Fn)
+nmap f <Plug>(easymotion-f2)
+nmap F <Plug>(easymotion-F2)
+map <leader>k <Plug>(easymotion-k)
+map <leader>j <Plug>(easymotion-j)
+
+"" let g:sneak_clevers = 1
+"" let g:sneak#label = 1
+"" Type s/S and two chars to start sneaking in forward/backward direction
+"" Type ; or , to proceed with sneaking just as if you were using f or t
+Plug 'justinmk/vim-sneak'
+
+"" cx{motion} to select, again to exchange (cxiw for exchanging a word)
+set exchange
+"" https://github.com/JetBrains/ideavim/wiki/NERDTree-support#supported-commands
+"" j/k=up/down; q=close, P=root node, o=open, go=open(focus stays), s=open split
+set NERDTree
+map <leader>,n :NERDTreeFocus<CR>
+
+set which-key
+"" disable the timeout option
+set notimeout
+"" increase the timeoutlen (default: 1000)
+set timeoutlen=5000
+let g:WhichKey_ShowVimActions = "true"
+
+" ^w-[h, j, k, l] - to move around windows "
+let g:WhichKeyDesc_nav_window = "<C-w> window navigation"
+let g:WhichKeyDesc_nav_window_left = "<C-w>h window left"
+let g:WhichKeyDesc_nav_window_down = "<C-w>j window down"
+let g:WhichKeyDesc_nav_window_up = "<C-w>k window up"
+let g:WhichKeyDesc_nav_window_right = "<C-w>l window right"
+
+"autoformating
+nmap gqq :action com.andrewbrookins.idea.wrap.WrapAction<CR>
+vmap gq :action com.andrewbrookins.idea.wrap.WrapAction<CR>
+
+"" source ~/.ideavim-core
+
+" (Optional) Add/edit actions
+"" nnoremap <leader>gl    :action Vcs.Show.Log<CR>
+"" vnoremap <leader>gl    :action Vcs.Show.Log<CR>
+
+" bug fix for back/forward - https://github.com/JetBrains/ideavim/discussions/578#discussioncomment-8404543
+nnoremap <expr> j (v:count <= 1 ? 'j' : "m'" . v:count . 'j')
+nnoremap <expr> k (v:count <= 1 ? 'k' : "m'" . v:count . 'k')
+xnoremap <expr> j (v:count <= 1 ? 'j' : "m'" . v:count . 'j')
+xnoremap <expr> k (v:count <= 1 ? 'k' : "m'" . v:count . 'k')
+
+" make more vim like keybindings
+" all them g like commands
+nnoremap <leader>gdk :action MethodUp<CR>
+nnoremap <leader>gdj :action MethodDown<CR>
+
+" yank/delete/change in/around method
+nnoremap vam j:action MethodUp<cr>0v]M
+nnoremap vim j:action MethodUp<cr>]m<cr>v]M<bs>
+nnoremap dam j:action MethodUp<cr>0v]M"_d
+nnoremap dim j:action MethodUp<cr>]m<cr>v]M<bs>"_d
+nnoremap yam j:action MethodUp<cr>0v]My
+nnoremap yim j:action MethodUp<cr>]m<cr>v]M<bs>y
+nnoremap cam j:action MethodUp<cr>0v]M"_c
+nnoremap cim j:action MethodUp<cr>]m<cr>v]M<bs>"_c
+
+"auto-formatting
+nmap gqq :action com.andrewbrookins.idea.wrap.WrapAction<CR>
+vmap gq :action com.andrewbrookins.idea.wrap.WrapAction<CR>
+
+"" Popup navigation (ctrl-n and ctrl-p do work though)
+inoremap <C-j> <Action>(PopupMenu-selectNext)
+inoremap <C-k> <Action>(popupMenu-selectPrevious)
+
+"word completion
+imap <C-n> <Action>(HippieCompletion)
+imap <C-p> <Action>(HippieBackwardCompletion)
+
+" map typical g commands to IDEA's
+map g; <Action>(JumpToLastChange)
+map g, <Action>(JumpToNextChange)
+
+"
+map <leader>gh <Action>(ShowHoverInfo)
