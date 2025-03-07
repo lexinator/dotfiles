@@ -66,7 +66,11 @@ case $OS in
             alias ls='ls -F --color=auto'
         fi
         export GREP_COLOR='1;32'
-        alias grep='grep --color=auto'
+        if (( $+commands[grep] )); then
+            if [[ ! -L =grep ]]; then
+                alias grep='grep --color=auto'
+            fi
+        fi
 
         #debian/ubuntu
         if [[ -f /etc/lsb-release ]]; then
@@ -258,8 +262,8 @@ $PR_DEFAULT'
 
 # put functions before site-functions
 setopt null_glob
-fpath=(/usr/local/share/zsh/functions
-    /usr/local/share/zsh/site-functions
+fpath=( /usr/share/zsh/$ZSH_VERSION/functions
+    /opt/homebrew/share/zsh/site-functions
     $fpath)
 unsetopt null_glob
 
@@ -272,6 +276,12 @@ case $USERNAME in
         if [[ -d ~/src/zsh-completions/src ]]; then
             fpath=(~/src/zsh-completions/src $fpath)
         fi
+
+        function fzf_init() {
+            [[ -f ~/zload/fzf.zsh ]] && source ~/zload/fzf.zsh
+        }
+
+        zvm_after_init_commands+=(fzf_init)
 
         #check if zload exists
         setopt nullglob
@@ -293,7 +303,7 @@ case $USERNAME in
         FIGNORE='.pyc:.o'
 
         umask 022
-        HISTFILE=~/.zsh_history
+        HISTFILE=~/.zsh_history_mine
         HISTSIZE=900000000
         SAVEHIST=$HISTSIZE
 
@@ -403,13 +413,18 @@ if [[ $BINDKEYMODE == "vi" ]]; then
     bindkey "^[[1;5D" backward-word
     bindkey "^[[1;5C" forward-word
 fi
-setprompt
 
 #remove any duplicates
 typeset -U fpath
 
 autoload -U compinit
 compinit -C -d ~/.zcompdump_$ZSH_VERSION
+
+# hack around some bug that i can't find
+if (( $+commands[team] )); then
+    autoload -U _team
+    compdef _team team
+fi
 
 function preexec {
     emulate -L zsh
@@ -691,10 +706,15 @@ autoload -Uz bracketed-paste-magic
 zle -N bracketed-paste bracketed-paste-magic
 zstyle :bracketed-paste-magic paste-init backward-extend-paste
 
+if [[ -r ~/src/powerlevel10k/powerlevel10k.zsh-theme ]]; then
+    # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+    [[ ! -r ~/.p10k.zsh ]] || source ~/.p10k.zsh
+    source ~/src/powerlevel10k/powerlevel10k.zsh-theme
+else
+    setprompt
+fi
+
 if [[ $PROFILE_STARTUP == true ]]; then
     unsetopt xtrace
     exec 2>&3 3>&-
 fi
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
