@@ -1,0 +1,27 @@
+# 
+# https://ghostty.org/docs/config/reference
+# 
+
+theme = Builtin Solarized Dark
+background = 000000
+
+# font-family = "MesloLGS NF"
+font-family = "Hack Nerd Font"
+font-size = 12
+
+auto-update = off
+
+#background-opacity = .9
+
+scrollback-limit = 25_000_000
+adjust-cursor-thickness = 300%
+unfocused-split-opacity = .1
+
+# Closing out tabs / windows
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+# colors are less dim
+window-colorspace = display-p3
+
+# cursor-style = block
