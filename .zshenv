@@ -21,36 +21,22 @@ authssh() {
 }
 
 case $HOST in
-    scotch*|bourbon*)
-        if [[ -f /pkg/modules/init/zsh ]] then
-            . /pkg/modules/init/zsh
-            module load default rsync nmh vim gsu screen rcs wget top \
-                        cvs gcc perl gtar combo/sysadmin subversion
-        else
-            echo "Expected modules on $HOST, something fishy is going on"
-        fi
-
-        case $(uname -r) in
-            5*) export PATH=$HOME/bin/sunos5/$(uname -p):$PATH ;;
-        esac
-        ;;
-
-    #sun/linux/meh whatever path
+    # add the usual suspects
     *)
-        path=(/usr/local/bin /usr/local/sbin
+        path=(/opt/homebrew/bin
+              /usr/local/bin /usr/local/sbin
               /opt/local/bin /opt/local/sbin
               /usr/bin /bin /usr/sbin /sbin
-              /usr/sfw/bin /opt/sfw/gcc-3/bin
               /opt/bin /opt/sbin /pkg/bin
               /opt/X11/bin /usr/X11R6/bin $path)
-        manpath=(/usr/man /usr/share/man /usr/sfw/man /opt/sfw/man
-                 /usr/dt/man /opt/sfw/mysql/man /usr/local/man
+        manpath=(/usr/man /usr/share/man /usr/local/man
                  /opt/local/man /usr/local/share/man $manpath)
         export PATH
         export MANPATH
         ;;
 esac
 
+# set up local user paths
 if [[ -e ~$USERNAME/bin/shared ]]; then
     export PATH=~$USERNAME/bin/shared:$PATH
 fi
@@ -68,10 +54,8 @@ export EDITOR=vi
 export LESS="-x3iX"
 export PAGER=less
 
-if [[ -x ~/pygments/bin/pygmentize ]]; then
-    export LESSOPEN="| ~/pygments/bin/pygmentize -f terminal256 -O style=solarizeddark -g %s"
-    export LESS="${LESS}R"
-elif [[ -n $commands[src-hilite-lesspipe.sh] ]]; then
+if [[ -n $commands[src-hilite-lesspipe.sh] ]] && \
+    [[ -n $commands[source-highlight] ]]; then
     export LESSOPEN="| $commands[src-hilite-lesspipe.sh] %s"
     export LESS="${LESS}R"
 fi
