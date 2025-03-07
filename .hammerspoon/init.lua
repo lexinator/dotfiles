@@ -3,8 +3,8 @@ log.d("Loading module")
 
 hs.window.animationDuration = 0
 
--- Use Control+` to reload Hammerspoon config
-hs.hotkey.bind({ 'ctrl' }, '`', nil, function() hs.reload() end)
+-- Use Control+\ to reload Hammerspoon config
+hs.hotkey.bind({ 'ctrl' }, '\\', nil, function() hs.reload() end)
 
 --  every window hint starts with the 1st character of the parent apps title
 hs.hints.style = "vimperator"

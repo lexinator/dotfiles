@@ -54,10 +54,15 @@ function screensChangedCallback()
 end
 
 function maxBrightness()
-    for _,screen in pairs(hs.screen.allScreens()) do
-        newBrightness = 1.0
-        screen:setBrightness(newBrightness)
-    end
+	for _, screen in pairs(hs.screen.allScreens()) do
+		newBrightness = 0.8
+		screen:setBrightness(newBrightness)
+
+		hs.timer.doAfter(1, function()
+			newBrightness = 1.0
+			screen:setBrightness(newBrightness)
+		end)
+	end
 end
 
 function dimScreens()
